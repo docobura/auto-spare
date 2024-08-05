@@ -74,7 +74,6 @@ function SignUpForm() {
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
             <Button label="Signup" onClick={handleSubmit} />
-             
           </div>
         </form>
       </section>
