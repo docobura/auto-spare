@@ -14,7 +14,18 @@ const InputField = ({ label, type }) => (
     />
   </div>
 );
-
+<div className="w-full max-w-xl mt-14 max-md:mt-10">
+<label htmlFor={`${type}Input`} className="sr-only">
+  {label}
+</label>
+<input
+  type={type}
+  id={`${type}Input`}
+  placeholder={label}
+  className="px-5 py-7 w-full text-3xl rounded-3xl bg-zinc-300"
+  aria-label={label}
+/>
+</div>
 const Button = ({ label }) => (
   <button
     type="submit"
