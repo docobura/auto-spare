@@ -74,7 +74,7 @@ function SignUpForm() {
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
             <Button label="Signup" onClick={handleSubmit} />
-            <main className="flex overflow-hidden flex-col text-black bg-black">
+             
           </div>
         </form>
       </section>
