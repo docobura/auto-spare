@@ -45,7 +45,7 @@ function SignUpForm() {
           loading="lazy"
           src="https://cdn.builder.io/api/v1/image/assets/TEMP/8935c23d8b329f0aff14f959f0b2f4f2d27bc391b442b3e2601d470b51dd7370?apiKey=e5e3ebbd91e648f394e04eeba5e829a3&&apiKey=e5e3ebbd91e648f394e04eeba5e829a3"
           alt=""
-          className="object-cover absolute inset-0 size-full"
+          className="object-cover absolute inset-0 size-full"     <main className="flex overflow-hidden flex-col text-black bg-black"></main>
         />
         <form
           onSubmit={handleSubmit}
