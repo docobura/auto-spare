@@ -1,3 +1,5 @@
+// -- Designed and Developed by:- G-Tech Offical 
+
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
@@ -8,3 +10,6 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <App />
   </React.StrictMode>,
 )
+
+
+  // -- Designed and Developed by:- G-Tech Offical 
