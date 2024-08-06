@@ -11,6 +11,20 @@ const ProductDetails = () => {
             .then(data => setProduct(data));
     }, [id]);
 
+    const handleAddToCart = () => {
+        fetch(`/api/cart`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ productId: product.id, quantity: 1 }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Product added to cart:', data);
+        });
+    };
+
     if (!product) {
         return <div>Loading...</div>;
     }
@@ -21,7 +35,7 @@ const ProductDetails = () => {
             <img src={product.image} alt={product.name} />
             <p>{product.description}</p>
             <p>${product.price}</p>
-            <button>Add to Cart</button>
+            <button onClick={handleAddToCart}>Add to Cart</button>
         </div>
     );
 };

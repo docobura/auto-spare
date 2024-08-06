@@ -1,72 +1,83 @@
 import React from 'react';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
+import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import './AddProductForm.css';
 
-const AddProductForm = () => {
-    const initialValues = {
-        name: '',
-        description: '',
-        price: '',
-        stock_quantity: '',
-        created_at: new Date().toISOString()
-    };
+// Validation schema
+const validationSchema = Yup.object({
+  name: Yup.string().required('Name is required'),
+  description: Yup.string().required('Description is required'),
+  price: Yup.number().required('Price is required').positive('Price must be positive'),
+  stock: Yup.number().required('Stock is required').integer('Stock must be an integer'),
+  imageUrl: Yup.string().url('Invalid URL').required('Image URL is required'),
+});
 
-    const validationSchema = Yup.object({
-        name: Yup.string().required('Required'),
-        description: Yup.string().required('Required'),
-        price: Yup.number().required('Required').positive('Price must be a positive number'),
-        stock_quantity: Yup.number().required('Required').positive('Quantity must be a positive number')
-    });
+const FormInput = ({ name, label, type, value, onChange, onBlur, error }) => (
+  <div className="mt-12 max-md:mt-10">
+    <label htmlFor={name} className="sr-only">{label}</label>
+    {type === 'textarea' ? (
+      <textarea
+        id={name}
+        name={name}
+        value={value}
+        onChange={onChange}
+        onBlur={onBlur}
+        className={`px-8 py-7 w-[781px] max-w-full text-3xl text-black rounded-3xl bg-zinc-300 max-md:px-5 ${error ? 'border-red-500' : ''}`}
+        placeholder={label}
+        rows="3"
+      />
+    ) : (
+      <input
+        type={type}
+        id={name}
+        name={name}
+        value={value}
+        onChange={onChange}
+        onBlur={onBlur}
+        className={`px-8 py-8 w-[781px] max-w-full text-3xl text-black whitespace-nowrap rounded-3xl bg-zinc-300 max-md:px-5 ${error ? 'border-red-500' : ''}`}
+        placeholder={label}
+      />
+    )}
+    {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
+  </div>
+);
 
-    const handleSubmit = (values, { setSubmitting, resetForm }) => {
-        // Submit form data to the API
-        fetch('/api/products', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(values)
-        }).then(response => response.json())
-          .then(data => {
-              // Handle success or error
-              setSubmitting(false);
-              resetForm();
-          });
-    };
+const AddProductsForm = () => {
+  const formik = useFormik({
+    initialValues: {
+      name: '',
+      description: '',
+      price: '',
+      stock: '',
+      imageUrl: '',
+    },
+    validationSchema,
+    onSubmit: (values) => {
+      console.log('Form submitted:', values);
+    },
+  });
 
-    return (
-        <div className="add-product-form">
-            <h1>Add Product</h1>
-            <Formik
-                initialValues={initialValues}
-                validationSchema={validationSchema}
-                onSubmit={handleSubmit}
-            >
-                {({ isSubmitting }) => (
-                    <Form>
-                        <label htmlFor="name">Name:</label>
-                        <Field type="text" name="name" />
-                        <ErrorMessage name="name" component="div" className="error" />
-
-                        <label htmlFor="description">Description:</label>
-                        <Field as="textarea" name="description" />
-                        <ErrorMessage name="description" component="div" className="error" />
-
-                        <label htmlFor="price">Price:</label>
-                        <Field type="number" name="price" />
-                        <ErrorMessage name="price" component="div" className="error" />
-
-                        <label htmlFor="stock_quantity">Stock Quantity:</label>
-                        <Field type="number" name="stock_quantity" />
-                        <ErrorMessage name="stock_quantity" component="div" className="error" />
-
-                        <button type="submit" disabled={isSubmitting}>Add Product</button>
-                    </Form>
-                )}
-            </Formik>
-        </div>
-    );
+  return (
+    <form onSubmit={formik.handleSubmit}>
+      {['name', 'description', 'price', 'stock', 'imageUrl'].map((field, index) => (
+        <FormInput
+          key={index}
+          name={field}
+          label={field.charAt(0).toUpperCase() + field.slice(1)}
+          type={field === 'description' ? 'textarea' : field === 'price' || field === 'stock' ? 'number' : 'text'}
+          value={formik.values[field]}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          error={formik.touched[field] && formik.errors[field]}
+        />
+      ))}
+      <button
+        type="submit"
+        className="px-16 py-7 mt-14 ml-10 max-w-full text-3xl text-center text-white bg-slate-600 rounded-[29px] w-[356px] max-md:px-5 max-md:mt-10"
+      >
+        Add Product
+      </button>
+    </form>
+  );
 };
 
-export default AddProductForm;
+export default AddProductsForm;
