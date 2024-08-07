@@ -81,4 +81,4 @@ function SignUpForm() {
   );
 }
 
-export default SignUpForm;
+export default SignupPage;
