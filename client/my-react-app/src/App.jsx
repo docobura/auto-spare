@@ -10,13 +10,14 @@ import ShopPage from './pages/ShopPage';
 import LoginFormPage from './pages/LoginPage';
 import ServiceList from './components/Services/ServiceList';
 import ServiceAppointmentPage from './pages/ServiceAppointmentsPage'; // Ensure the correct path
+import UserDashboardPage from './pages/UserDashboardPage';
 
 const App = () => {
   return (
     <Router>
       <Routes>
         <Route path="/add-product" element={<AddProductFormPage />} />
-        <Route path="/home" element={<HomePage />} />
+        <Route path="/" element={<HomePage />} />
         <Route path="/orders" element={<OrderListPage />} />
         <Route path="/product-name" element={<ProductPage />} />
         <Route path="/reviews" element={<ReviewPage />} />
@@ -25,6 +26,7 @@ const App = () => {
         <Route path="/login" element={<LoginFormPage />} />
         <Route path="/servicing" element={<ServiceList />} />
         <Route path="/service-appointment" element={<ServiceAppointmentPage />} />
+        <Route path='dashboard' element={<UserDashboardPage/>}/>
       </Routes>
     </Router>
   );
