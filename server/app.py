@@ -3,6 +3,12 @@ from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
 from models import db, User, Review, Part, Order, Service, Cart
+import cloudinary
+import cloudinary.uploader
+import logging
+
+# Setting up basic logging
+logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 app.config.from_object('config.Config')
@@ -11,6 +17,12 @@ db.init_app(app)
 migrate = Migrate(app, db)
 CORS(app)
 jwt = JWTManager(app)
+
+cloudinary.config(
+    cloud_name='dqo6dqmbh',
+    api_key='684544826659325',
+    api_secret='aRE8edsHfXlFPKfMLI5bkp0LB18'
+)
 
 @app.route("/")
 def index():
@@ -38,16 +50,24 @@ def signup():
     username = data.get('username')
     email = data.get('email')
     password = data.get('password')
+    role = data.get('role', 'user')
 
     if not username or not email or not password:
         return jsonify({"error": "Missing required fields"}), 400
 
+    # Check if user already exists
+    if User.query.filter_by(username=username).first():
+        return jsonify({"error": "Username already taken"}), 400
+
+    if User.query.filter_by(email=email).first():
+        return jsonify({"error": "Email already registered"}), 400
+
     new_user = User(
         username=username,
         email=email,
-        role='user'  
+        role=role
     )
-    new_user.set_password(password) 
+    new_user.set_password(password)
 
     try:
         db.session.add(new_user)
@@ -57,27 +77,19 @@ def signup():
             'username': new_user.username,
             'email': new_user.email
         }
-        return jsonify(user_dict), 201  
+        return jsonify(user_dict), 201
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": str(e)}), 400
+        logging.error(f"Error creating user: {e}")
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/all_users")
 def get_all_users():
-    users = User.query.all()
-    users_list = [
-        {
-            'id': user.id,
-            'username': user.username,
-            'email': user.email
-        } for user in users
-    ]
-    return make_response(jsonify(users_list), 200)
-
-@app.route("/users", methods=["GET", "POST"])
-def users():
-    if request.method == "GET":
+    try:
         users = User.query.all()
+        if not users:
+            return jsonify({"message": "No users found"}), 404
+
         users_list = [
             {
                 'id': user.id,
@@ -85,7 +97,31 @@ def users():
                 'email': user.email
             } for user in users
         ]
-        return jsonify(users_list), 200
+        return make_response(jsonify(users_list), 200)
+    except Exception as e:
+        logging.error(f"Error fetching users: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/users", methods=["GET", "POST"])
+def users():
+    if request.method == "GET":
+        try:
+            users = User.query.all()
+            if not users:
+                return jsonify({"message": "No users found"}), 404
+
+            users_list = [
+                {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                    'role': user.role
+                } for user in users
+            ]
+            return jsonify(users_list), 200
+        except Exception as e:
+            logging.error(f"Error fetching users: {e}")
+            return jsonify({"error": str(e)}), 500
 
     elif request.method == 'POST':
         data = request.get_json()
@@ -94,101 +130,149 @@ def users():
 
         username = data.get("username")
         email = data.get("email")
+        password = data.get("password")
+        role = data.get("role", "user")
 
-        if not username or not email:
-            return jsonify({"error": "Missing username or email"}), 400
+        if not username or not email or not password:
+            return jsonify({"error": "Missing username, email, or password"}), 400
+
+        # Check if user already exists
+        if User.query.filter_by(username=username).first():
+            return jsonify({"error": "Username already taken"}), 400
+
+        if User.query.filter_by(email=email).first():
+            return jsonify({"error": "Email already registered"}), 400
 
         new_user = User(
             username=username,
-            email=email
+            email=email,
+            role=role
         )
+        new_user.set_password(password)
+
         try:
             db.session.add(new_user)
             db.session.commit()
             user_dict = {
                 'id': new_user.id,
                 'username': new_user.username,
-                'email': new_user.email
+                'email': new_user.email,
+                'role': new_user.role
             }
             return jsonify(user_dict), 201
         except Exception as e:
             db.session.rollback()
-            return jsonify({"error": str(e)}), 400
+            logging.error(f"Error creating user: {e}")
+            return jsonify({"error": str(e)}), 500
 
 @app.route("/users/<int:id>", methods=["GET", "PUT", "PATCH", "DELETE"])
 def get_user_by_id(id):
-    user = User.query.filter_by(id=id).first()
-    if user is None:
-        return make_response(jsonify({"message": f"User id:{id} not found."}), 404)
+    try:
+        user = User.query.filter_by(id=id).first()
+        if user is None:
+            return make_response(jsonify({"message": f"User id:{id} not found."}), 404)
 
-    if request.method == "GET":
-        user_dict = {
-            'id': user.id,
-            'username': user.username,
-            'email': user.email
-        }
-        return make_response(jsonify(user_dict), 200)
-
-    elif request.method == "PUT":
-        data = request.get_json()
-        if not data:
-            return jsonify({"message": "No data provided."}), 400
-
-        user.username = data.get('username', user.username)
-        user.email = data.get('email', user.email)
-        db.session.commit()
-
-        user_dict = {
-            'id': user.id,
-            'username': user.username,
-            'email': user.email
-        }
-        return make_response(jsonify(user_dict), 200)
-
-    elif request.method == "PATCH":
-        data = request.get_json()
-        if data:
-            if 'username' in data:
-                user.username = data['username']
-            if 'email' in data:
-                user.email = data['email']
-            db.session.commit()
+        if request.method == "GET":
             user_dict = {
                 'id': user.id,
                 'username': user.username,
-                'email': user.email
+                'email': user.email,
+                'role': user.role
             }
             return make_response(jsonify(user_dict), 200)
-        else:
-            return jsonify({"message": "Invalid data provided."}), 400
 
-    elif request.method == "DELETE":
-        db.session.delete(user)
-        db.session.commit()
-        return jsonify({"message": f"User id:{id} has been deleted."}), 204
+        elif request.method == "PUT":
+            data = request.get_json()
+            if not data:
+                return jsonify({"message": "No data provided."}), 400
+
+            user.username = data.get('username', user.username)
+            user.email = data.get('email', user.email)
+            user.role = data.get('role', user.role)
+            if 'password' in data:
+                user.set_password(data['password'])
+            db.session.commit()
+
+            user_dict = {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'role': user.role
+            }
+            return make_response(jsonify(user_dict), 200)
+
+        elif request.method == "PATCH":
+            data = request.get_json()
+            if data:
+                if 'username' in data:
+                    user.username = data['username']
+                if 'email' in data:
+                    user.email = data['email']
+                if 'role' in data:
+                    user.role = data['role']
+                if 'password' in data:
+                    user.set_password(data['password'])
+                db.session.commit()
+                user_dict = {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                    'role': user.role
+                }
+                return make_response(jsonify(user_dict), 200)
+            else:
+                return jsonify({"message": "Invalid data provided."}), 400
+
+        elif request.method == "DELETE":
+            db.session.delete(user)
+            db.session.commit()
+            return jsonify({"message": f"User id:{id} has been deleted."}), 204
+    except Exception as e:
+        logging.error(f"Error processing user id:{id}: {e}")
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route("/first_user")
 def get_first_user():
-    user = User.query.first()
-    user_dict = {
-        'id': user.id,
-        'username': user.username,
-        'email': user.email
-    }
+    try:
+        user = User.query.first()
+        if not user:
+            return jsonify({"message": "No users found"}), 404
 
-    response = make_response(jsonify(user_dict), 200)
-    return response
+        user_dict = {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email
+        }
+
+        response = make_response(jsonify(user_dict), 200)
+        return response
+    except Exception as e:
+        logging.error(f"Error fetching the first user: {e}")
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/parts', methods=['GET', 'POST'])
 def manage_parts():
     if request.method == 'POST':
-        data = request.get_json()
+        # data = request.get_json()
+        name = request.form['name']
+        description = request.form['description']
+        price = request.form['price']
+        stock_quantity = request.form['stock_quantity']
+        image = request.files.get('image')
+        
+        if image:
+            upload_result = cloudinary.uploader.upload(image)
+            image_url = upload_result.get('url')
+        else:
+            image_url = request.form['image_url']
+        
         part = Part(
-            name=data['name'],
-            description=data['description'],
-            price=data['price'],
-            stock_quantity=data['stock_quantity'],
-            image_url=data.get('image_url')
+            name=name,
+            description=description,
+            price=float(price),
+            stock_quantity=int(stock_quantity),
+            image_url=image_url
         )
         db.session.add(part)
         db.session.commit()
@@ -262,12 +346,20 @@ def manage_orders():
 @app.route('/services', methods=['POST'])
 def create_service():
     data = request.get_json()
+    image = request.files.get('image')
+    
+    if image:
+        upload_result = cloudinary.uploader.upload(image)
+        image_url = upload_result.get('url')
+    else:
+        image_url = data.get('image_url')
+    
     service = Service(
         order_id=data['order_id'],
         mechanic_id=data['mechanic_id'],
         description=data['description'],
         cost=data['cost'],
-        image_url=data.get('image_url')
+        image_url=image_url
     )
     db.session.add(service)
     db.session.commit()
