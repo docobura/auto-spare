@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
 const ServiceAppointmentPage = () => {
   const [appointmentDate, setAppointmentDate] = useState(null);
   const location = useLocation();
+  const navigate = useNavigate();
   const query = new URLSearchParams(location.search);
   const icon = query.get('icon');
   const label = query.get('label');
@@ -15,9 +16,36 @@ const ServiceAppointmentPage = () => {
     setAppointmentDate(date);
   };
 
-  const handleBooking = () => {
-    
-    console.log('Booking service:', { icon, label, imageUrl, appointmentDate });
+  const handleBooking = async () => {
+    if (!appointmentDate) {
+      alert('Please select a date for your appointment.');
+      return;
+    }
+
+    const bookingData = { icon, label, imageUrl, appointmentDate };
+
+    try {
+      const response = await fetch('/api/book-service', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(bookingData),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Booking service:', data);
+        alert('Appointment confirmed!');
+        navigate('/confirmation'); // Redirect to a confirmation page
+      } else {
+        console.error('Error booking service:', response.statusText);
+        alert('Failed to book the appointment. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error booking service:', error);
+      alert('An error occurred. Please try again.');
+    }
   };
 
   return (
