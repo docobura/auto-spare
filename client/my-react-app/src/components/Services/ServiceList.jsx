@@ -12,25 +12,6 @@ const services = [
   { icon: 'exhausts', label: 'Exhausts', imageUrl: 'https://heathtyresautocentre.co.uk/wp-content/uploads/2021/12/exhausts-cardiff.jpg' },
 ];
 
-const Header = () => {
-  return (
-    <header className="fixed top-0 left-0 right-0 z-50 py-3 pr-6 pl-6 w-screen bg-white bg-opacity-50 rounded-full">
-      <nav className="flex gap-4 justify-center">
-        <div className="flex items-center gap-2 text-lg text-black">
-          <div className="flex shrink-0 w-10 h-10 bg-black rounded-full" />
-          <div className="flex-auto">AutoSavy</div>
-        </div>
-        <div className="flex items-center gap-4 text-sm text-black">
-          <Link to="/shop">Shop</Link>
-          <Link to="/dashboard">Dashboard</Link>
-          <Link to="/servicing">Servicing</Link>
-          <Link to="/reviews">Reviews</Link>
-        </div>
-      </nav>
-    </header>
-  );
-};
-
 const ServiceList = ({ onServiceSelect }) => {
   return (
     <div className="w-screen h-screen bg-black text-white flex flex-col pt-[72px]"> {/* Adjust padding-top to ensure space for the header */}
@@ -42,8 +23,7 @@ const ServiceList = ({ onServiceSelect }) => {
             {services.map((service, index) => (
               <ServiceItem 
                 key={index} 
-                icon={service.icon} 
-                label={service.label} 
+                  label={service.description} 
                 imageUrl={service.imageUrl} 
                 onClick={() => onServiceSelect(service)}
               />
