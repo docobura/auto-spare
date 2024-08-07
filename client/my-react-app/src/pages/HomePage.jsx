@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import ProductList from '../components/Products/ProductList'; // Assuming ProductList is in components folder
+import ReviewList from '../components/Reviews/ReviewList';
 
 const Header = () => {
   return (
@@ -10,7 +12,7 @@ const Header = () => {
           <div className="flex-auto">AutoSavy</div>
         </div>
         <div className="flex items-center gap-4 text-sm text-black">
-          <Link to="/">Shop</Link>
+          <Link to="/shop">Shop</Link>
           <Link to="/dashboard">Dashboard</Link>
           <Link to="/servicing">Servicing</Link>
           <Link to="/reviews">Reviews</Link>
@@ -85,47 +87,12 @@ const Updates = () => {
   );
 };
 
-const PartCard = ({ image, title, price, description, link }) => {
-  return (
-    <article className="flex flex-col items-start self-start mt-4 max-w-[300px]">
-      <img loading="lazy" src={image} alt={title} className="object-contain self-stretch w-full h-[200px] rounded-[20px]" />
-      <h3 className="mt-2.5 text-2xl">{title}</h3>
-      <p className="mt-2 text-lg">Ksh. {price}</p>
-      <p className="self-stretch mt-2 text-base">{description}</p>
-      <Link to={link}>
-        <button className="px-4 py-2 mt-2 text-lg text-center text-white bg-slate-600 rounded-full">Get Yours</button>
-      </Link>
-    </article>
-  );
-};
-
 const PartsExplorer = () => {
-  const partsData = [
-    {
-      image: "https://cdn.builder.io/api/v1/image/assets/TEMP/a66f3655c5361eb556c7b506744a13848caf8160c571dfca379d13266f8c17bf?apiKey=e5e3ebbd91e648f394e04eeba5e829a3&&apiKey=e5e3ebbd91e648f394e04eeba5e829a3",
-      title: "Spark Plug",
-      price: "3,000",
-      description: "Ignite your ride with our high-efficiency spark plugs!",
-      link: "/product/1"
-    },
-    {
-      image: "https://cdn.builder.io/api/v1/image/assets/TEMP/25ba8aca5cfc819bf9743e96c8e7727d223a22fcd3cae601c8f9ea4ed83ee55b?apiKey=e5e3ebbd91e648f394e04eeba5e829a3&&apiKey=e5e3ebbd91e648f394e04eeba5e829a3",
-      title: "Suspension Kit",
-      price: "45,000",
-      description: "Transform your ride with our complete suspension kit!",
-      link: "/product/2"
-    }
-  ];
-
   return (
     <section className="flex flex-col items-center px-10 pt-14 pb-32 w-full text-black bg-gray-50">
       <div className="flex flex-col w-full max-w-[1080px]">
         <h2 className="self-center text-3xl text-center">Explore Our Parts</h2>
-        <div className="flex flex-wrap gap-5 justify-between mt-9">
-          {partsData.map((part, index) => (
-            <PartCard key={index} {...part} />
-          ))}
-        </div>
+        <ProductList />
       </div>
     </section>
   );
@@ -148,43 +115,101 @@ const OrangeSection = () => (
   </header>
 );
 
-const ReviewSection = () => (
-  <section className="flex flex-wrap gap-5 px-10 pt-14 pb-32 w-full text-center text-black bg-white">
-    <div className="flex flex-col w-full">
-      <h2 className="self-center text-3xl">Previous Reviews</h2>
-      <article className="flex flex-col items-start p-10 mt-10 bg-zinc-300 rounded-[20px]">
-        <h3 className="text-xl">Name</h3>
-        <hr className="self-stretch mt-8 border-black border-solid" />
-        <p className="mt-5 text-lg">Review description</p>
-      </article>
+const ReviewSection = () => {
+  const [reviews, setReviews] = useState([]);
+
+  useEffect(() => {
+    // Fetch reviews from the API
+    fetch('/api/reviews')
+      .then(response => response.json())
+      .then(data => setReviews(data))
+      .catch(error => console.error('Error fetching reviews:', error));
+  }, []);
+
+  return (
+    <section className="flex flex-wrap gap-5 px-10 pt-14 pb-32 w-full text-center text-black bg-white">
+      <div className="flex flex-col w-full">
+        <h2 className="self-center text-3xl">Previous Reviews</h2>
+        <div className="flex flex-col w-full">
+          {reviews.length > 0 ? (
+            reviews.map((review, index) => (
+              <article key={index} className="flex flex-col items-start p-10 mt-10 bg-zinc-300 rounded-[20px]">
+                <h3 className="text-xl">{review.name}</h3>
+                <hr className="self-stretch mt-8 border-black border-solid" />
+                <p className="mt-5 text-lg">{review.description}</p>
+              </article>
+            ))
+          ) : (
+            <p className="text-lg">No reviews available.</p>
+          )}
+        </div>
+      </div>
+      <img
+        loading="lazy"
+        src="https://cdn.builder.io/api/v1/image/assets/TEMP/53a656cc5106c7e2ea155f8a453f8e4e3da373c5cfd4ed6585c5516eecbfa4dc?apiKey=e5e3ebbd91e648f394e04eeba5e829a3&&apiKey=e5e3ebbd91e648f394e04eeba5e829a3"
+        alt="Decorative"
+        className="object-contain my-auto w-6"
+      />
+    </section>
+  );
+};
+
+const FAQItem = ({ question, answer }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <div className="flex flex-col gap-4 px-10 py-8 mt-10 bg-white border border-gray-300 rounded-lg">
+      <div
+        className="cursor-pointer flex items-center justify-between"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <h3 className="text-2xl">{question}</h3>
+        <span className="text-lg text-gray-600">
+          {isExpanded ? '-' : '+'}
+        </span>
+      </div>
+      {isExpanded && (
+        <p className="mt-2 text-lg text-gray-700">{answer}</p>
+      )}
     </div>
-    <img
-      loading="lazy"
-      src="https://cdn.builder.io/api/v1/image/assets/TEMP/53a656cc5106c7e2ea155f8a453f8e4e3da373c5cfd4ed6585c5516eecbfa4dc?apiKey=e5e3ebbd91e648f394e04eeba5e829a3&&apiKey=e5e3ebbd91e648f394e04eeba5e829a3"
-      alt=""
-      className="object-contain my-auto w-6"
-    />
-  </section>
-);
+  );
+};
 
-const FAQItem = ({ question }) => (
-  <div className="flex flex-wrap gap-5 justify-between items-start px-10 py-8 mt-10 bg-white border border-gray-300 rounded-lg">
-    <h3 className="text-2xl">{question}</h3>
-    <img
-      loading="lazy"
-      src="https://cdn.builder.io/api/v1/image/assets/TEMP/a01c3c8aa5fbcaa6f66f13fd6e9237589b68d93b1e12313cfb0cf12cf62f6b43?apiKey=e5e3ebbd91e648f394e04eeba5e829a3"
-      alt=""
-      className="object-contain w-6"
-    />
-  </div>
-);
+const FAQs = () => {
+  const faqData = [
+    {
+      question: "How do I order car parts?",
+      answer: "You can order car parts through our online shop by adding the parts to your cart and proceeding to checkout."
+    },
+    {
+      question: "Can I book a service online?",
+      answer: "Yes, you can book a service online by visiting the 'Servicing' section on our website."
+    },
+    {
+      question: "What if I need to cancel?",
+      answer: "To cancel an order or service, please contact our customer service team as soon as possible."
+    },
+    {
+      question: "How do I track my order?",
+      answer: "Once your order is shipped, you will receive a tracking number via email to track your order."
+    },
+    {
+      question: "Do you offer warranties on parts?",
+      answer: "Yes, we offer warranties on many of our parts. Please check the product details for specific warranty information."
+    }
+  ];
 
-const FAQs = () => (
-  <section className="flex flex-col px-10 pt-10 pb-32 w-full text-center text-black bg-gray-50">
-    <h2 className="text-3xl">FAQ</h2>
-    <FAQItem question="Question" />
-  </section>
-);
+  return (
+    <section className="flex flex-col px-10 pt-10 pb-32 w-full text-center text-black bg-gray-50">
+      <h2 className="text-3xl">FAQ</h2>
+      {faqData.map((item, index) => (
+        <FAQItem key={index} question={item.question} answer={item.answer} />
+      ))}
+    </section>
+  );
+};
+
+
 
 const ContactUs = () => (
   <section className="flex flex-col items-center px-10 pt-10 pb-32 w-full text-center text-black bg-gray-50">
@@ -199,17 +224,32 @@ const ContactUs = () => (
   </section>
 );
 
-const HomePage = () => (
-  <div className="flex flex-col items-center">
-    <Header />
-    <Hero />
-    <Updates />
-    <PartsExplorer />
-    <OrangeSection />
-    <ReviewSection />
-    <FAQs />
-    <ContactUs />
-  </div>
-);
+const HomePage = () => {
+  return (
+    <>
+      <Header />
+      <Hero />
+      <Updates />
+      <PartsExplorer />
+      <OrangeSection />
+      <ReviewSection />
+      <FAQs />
+      <ContactUs />
+    </>
+  );
+};
 
 export default HomePage;
+
+
+
+
+
+
+
+
+
+
+
+
+
