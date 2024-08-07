@@ -1,5 +1,6 @@
 import React from 'react';
 import ServiceItem from './ServiceItem';
+import { Link } from 'react-router-dom';
 
 const services = [
   { icon: 'collisionRepairs', label: 'Collision Repairs', imageUrl: 'https://www.shutterstock.com/image-photo/mechanic-garage-auto-workshop-team-600nw-2293582995.jpg' },
@@ -11,24 +12,46 @@ const services = [
   { icon: 'exhausts', label: 'Exhausts', imageUrl: 'https://heathtyresautocentre.co.uk/wp-content/uploads/2021/12/exhausts-cardiff.jpg' },
 ];
 
+const Header = () => {
+  return (
+    <header className="fixed top-0 left-0 right-0 z-50 py-3 pr-6 pl-6 w-screen bg-white bg-opacity-50 rounded-full">
+      <nav className="flex gap-4 justify-center">
+        <div className="flex items-center gap-2 text-lg text-black">
+          <div className="flex shrink-0 w-10 h-10 bg-black rounded-full" />
+          <div className="flex-auto">AutoSavy</div>
+        </div>
+        <div className="flex items-center gap-4 text-sm text-black">
+          <Link to="/shop">Shop</Link>
+          <Link to="/dashboard">Dashboard</Link>
+          <Link to="/servicing">Servicing</Link>
+          <Link to="/reviews">Reviews</Link>
+        </div>
+      </nav>
+    </header>
+  );
+};
+
 const ServiceList = ({ onServiceSelect }) => {
   return (
-    <section className="flex flex-col items-center px-10 pt-14 pb-32 w-full text-black bg-gray-50">
-      <div className="flex flex-col w-full max-w-[1080px]">
-        <h2 className="self-center text-3xl text-center">Our Services:</h2>
-        <div className="flex flex-wrap gap-5 justify-between mt-9">
-          {services.map((service, index) => (
-            <ServiceItem 
-              key={index} 
-              icon={service.icon} 
-              label={service.label} 
-              imageUrl={service.imageUrl} 
-              onClick={() => onServiceSelect(service)}
-            />
-          ))}
+    <div className="w-screen h-screen bg-black text-white flex flex-col pt-[72px]"> {/* Adjust padding-top to ensure space for the header */}
+      <Header />
+      <section className="flex flex-col items-center px-10 pt-14 pb-32 w-full bg-gray-800 text-white">
+        <div className="flex flex-col w-full max-w-[1080px]">
+          <h2 className="self-center text-3xl text-center">Our Services:</h2>
+          <div className="flex flex-wrap gap-5 justify-between mt-9">
+            {services.map((service, index) => (
+              <ServiceItem 
+                key={index} 
+                icon={service.icon} 
+                label={service.label} 
+                imageUrl={service.imageUrl} 
+                onClick={() => onServiceSelect(service)}
+              />
+            ))}
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   );
 };
 

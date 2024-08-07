@@ -12,7 +12,7 @@ const validationSchema = Yup.object({
 });
 
 const FormInput = ({ name, label, type, value, onChange, onBlur, error }) => (
-  <div className="mt-12 max-md:mt-10">
+  <div className="mt-6 max-md:mt-4">
     <label htmlFor={name} className="sr-only">{label}</label>
     {type === 'textarea' ? (
       <textarea
@@ -21,7 +21,7 @@ const FormInput = ({ name, label, type, value, onChange, onBlur, error }) => (
         value={value}
         onChange={onChange}
         onBlur={onBlur}
-        className={`px-8 py-7 w-[781px] max-w-full text-3xl text-black rounded-3xl bg-zinc-300 max-md:px-5 ${error ? 'border-red-500' : ''}`}
+        className={`px-4 py-3 w-full text-base text-black rounded-lg bg-zinc-300 max-md:px-2 ${error ? 'border-red-500' : ''}`}
         placeholder={label}
         rows="3"
       />
@@ -33,11 +33,11 @@ const FormInput = ({ name, label, type, value, onChange, onBlur, error }) => (
         value={value}
         onChange={onChange}
         onBlur={onBlur}
-        className={`px-8 py-8 w-[781px] max-w-full text-3xl text-black whitespace-nowrap rounded-3xl bg-zinc-300 max-md:px-5 ${error ? 'border-red-500' : ''}`}
+        className={`px-4 py-3 w-full text-base text-black rounded-lg bg-zinc-300 max-md:px-2 ${error ? 'border-red-500' : ''}`}
         placeholder={label}
       />
     )}
-    {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
+    {error && <div className="text-red-500 text-xs mt-1">{error}</div>}
   </div>
 );
 
@@ -57,7 +57,7 @@ const AddProductsForm = () => {
   });
 
   return (
-    <form onSubmit={formik.handleSubmit}>
+    <form onSubmit={formik.handleSubmit} className="flex flex-col gap-4">
       {['name', 'description', 'price', 'stock', 'imageUrl'].map((field, index) => (
         <FormInput
           key={index}
@@ -72,7 +72,7 @@ const AddProductsForm = () => {
       ))}
       <button
         type="submit"
-        className="px-16 py-7 mt-14 ml-10 max-w-full text-3xl text-center text-white bg-slate-600 rounded-[29px] w-[356px] max-md:px-5 max-md:mt-10"
+        className="px-8 py-4 mt-6 mx-auto text-lg text-center text-white bg-slate-600 rounded-lg w-full max-w-xs max-md:px-4 max-md:py-2 max-md:mt-4"
       >
         Add Product
       </button>

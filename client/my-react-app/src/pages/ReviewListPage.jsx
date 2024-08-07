@@ -1,56 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const Header = () => {
-    const navigate = useNavigate();
-  
-    return (
-      <header className="py-7 pr-20 pl-10 bg-white bg-opacity-50 rounded-[81px] max-md:px-5 max-md:max-w-full">
-        <nav className="flex gap-5 max-md:flex-col">
-          <div className="flex flex-col w-[26%] max-md:ml-0 max-md:w-full">
-            <div className="flex grow gap-1.5 text-3xl text-black whitespace-nowrap max-md:mt-10">
-              <div className="flex shrink-0 w-24 bg-black h-[58px] rounded-[29px]" />
-              <div 
-                className="flex-auto my-auto cursor-pointer" 
-                onClick={() => navigate('/')}
-              >
-                AutoSavy
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-col ml-5 w-[74%] max-md:ml-0 max-md:w-full">
-            <div className="flex gap-5 self-stretch my-auto text-3xl text-center text-black whitespace-nowrap max-md:mt-10 max-md:max-w-full">
-              <div 
-                className="cursor-pointer" 
-                onClick={() => navigate('/shop')}
-              >
-                Shop
-              </div>
-              <div 
-                className="flex-auto cursor-pointer" 
-                onClick={() => navigate('/dashboard')}
-              >
-                Dashboard
-              </div>
-              <div 
-                className="flex-auto cursor-pointer" 
-                onClick={() => navigate('/servicing')}
-              >
-                Servicing
-              </div>
-              <div 
-                className="flex-auto cursor-pointer" 
-                onClick={() => navigate('/reviews')}
-              >
-                Reviews
-              </div>
-            </div>
-          </div>
-        </nav>
-      </header>
-    );
-  };
-  
+  return (
+    <header className="fixed top-0 left-0 right-0 z-50 py-3 pr-6 pl-6 w-screen bg-white bg-opacity-50 rounded-full">
+      <nav className="flex gap-4 justify-center w-screen">
+        <div className="flex items-center gap-2 text-lg text-black">
+          <div className="flex shrink-0 w-10 h-10 bg-black rounded-full" />
+          <div className="flex-auto">AutoSavy</div>
+        </div>
+        <div className="flex items-center gap-4 text-sm text-black">
+          <Link to="/shop">Shop</Link>
+          <Link to="/dashboard">Dashboard</Link>
+          <Link to="/servicing">Servicing</Link>
+          <Link to="/reviews">Reviews</Link>
+        </div>
+      </nav>
+    </header>
+  );
+};
 
 const ReviewCard = ({ name, review }) => (
   <article className="flex flex-col w-6/12 max-md:ml-0 max-md:w-full">
@@ -79,9 +47,9 @@ const ReviewListPage = () => {
   }, []);
 
   return (
-    <main className="flex overflow-hidden flex-col px-16 pt-14 pb-52 bg-black max-md:px-5 max-md:pb-24">
+    <main className="flex overflow-hidden flex-col px-16 pt-20 pb-52 bg-black max-md:px-5 max-md:pb-24 w-screen h-screen">
       <Header />
-      <h1 className="self-start mt-20 ml-14 text-7xl text-white max-md:mt-10 max-md:ml-2.5 max-md:text-4xl">
+      <h1 className="self-start mt-16 ml-14 text-5xl text-white max-md:mt-8 max-md:ml-2.5 max-md:text-3xl">
         Reviews
       </h1>
       <section className="self-end mt-14 w-full max-w-[1619px] max-md:mt-10 max-md:mr-1.5 max-md:max-w-full">
