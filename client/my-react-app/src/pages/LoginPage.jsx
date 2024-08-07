@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
+
 
 const InputField = ({ label, type, value, onChange }) => (
   <div className="w-full max-w-[752px] mt-14 max-md:mt-10">
@@ -28,7 +29,7 @@ const Button = ({ label }) => (
 );
 
 const LoginFormPage = () => {
-  const history = useHistory();
+  const history = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
