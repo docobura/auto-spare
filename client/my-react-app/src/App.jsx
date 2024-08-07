@@ -1,12 +1,11 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import AddProductFormPage from './pages/AddProductPage';
-
+import OrderListPage from './pages/OrderListPage';
 const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<AddProductFormPage />} />
+        <Route path="/" element={<OrderListPage />} />
       </Routes>
     </Router>
   );
