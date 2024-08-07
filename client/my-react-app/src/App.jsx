@@ -8,6 +8,8 @@ import ReviewPage from './pages/ReviewFormPage';
 import ReviewListPage from './pages/ReviewListPage';
 import ShopPage from './pages/ShopPage';
 import LoginFormPage from './pages/LoginPage';
+import ServiceList from './components/Services/ServiceList';
+import ServiceAppointmentPage from './pages/ServiceAppointmentsPage'; // Ensure the correct path
 
 const App = () => {
   return (
@@ -21,7 +23,8 @@ const App = () => {
         <Route path="/all-reviews" element={<ReviewListPage />} />
         <Route path="/shop" element={<ShopPage />} />
         <Route path="/login" element={<LoginFormPage />} />
-      
+        <Route path="/servicing" element={<ServiceList />} />
+        <Route path="/service-appointment" element={<ServiceAppointmentPage />} />
       </Routes>
     </Router>
   );

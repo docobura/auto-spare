@@ -1,5 +1,6 @@
 import React from 'react';
-import { FaWrench, FaOilCan, FaCogs, FaCarCrash, FaSprayCan, FaAlignCenter, FaServicestack, FaCloudMeatball } from 'react-icons/fa'; // Updated
+import { Link } from 'react-router-dom';
+import { FaWrench, FaOilCan, FaCogs, FaCarCrash, FaSprayCan, FaAlignCenter, FaServicestack, FaCloudMeatball } from 'react-icons/fa';
 
 const icons = {
   collisionRepairs: FaCarCrash,
@@ -8,17 +9,21 @@ const icons = {
   sprayPainting: FaSprayCan,
   wheelAlignment: FaAlignCenter,
   carServicing: FaServicestack,
-  exhausts: FaCloudMeatball, // Updated
+  exhausts: FaCloudMeatball,
 };
 
-const ServiceItem = ({ icon, label, onClick }) => {
+const ServiceItem = ({ icon, label, imageUrl }) => {
   const IconComponent = icons[icon];
-  console.log('Rendering ServiceItem:', { icon, label }); // Debugging message
   return (
-    <div className="flex items-center space-x-2 p-4 border rounded-md shadow-sm hover:shadow-lg cursor-pointer" onClick={onClick}>
-      {IconComponent ? <IconComponent className="text-xl" /> : null}
-      <span className="text-lg font-semibold">{label}</span>
-    </div>
+    <Link to={`/service-appointment?icon=${icon}&label=${label}&imageUrl=${encodeURIComponent(imageUrl)}`}>
+      <article className="flex flex-col items-start self-start mt-4 max-w-[300px] cursor-pointer">
+        <img loading="lazy" src={imageUrl} alt={label} className="object-contain self-stretch w-full h-[200px] rounded-[20px]" />
+        <div className="flex items-center gap-2 mt-2.5 text-xl">
+          {IconComponent ? <IconComponent className="text-xl" /> : null}
+          <h3 className="text-2xl">{label}</h3>
+        </div>
+      </article>
+    </Link>
   );
 };
 
