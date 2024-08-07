@@ -1,12 +1,30 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import AddProductFormPage from './pages/AddProductPage';
+import HomePage from './pages/HomePage';
+import OrderListPage from './pages/OrderListPage';
+import ProductPage from './pages/ProductPage';
+import ReviewPage from './pages/ReviewFormPage';
+import ReviewListPage from './pages/ReviewListPage';
+import ShopPage from './pages/ShopPage';
+import LoginFormPage from './pages/LoginPage';
+import ServiceList from './components/Services/ServiceList';
+import ServiceAppointmentPage from './pages/ServiceAppointmentsPage'; // Ensure the correct path
 
 const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<AddProductFormPage />} />
+        <Route path="/add-product" element={<AddProductFormPage />} />  
+        <Route path="/home" element={<HomePage />} />
+        <Route path="/orders" element={<OrderListPage />} />
+        <Route path="/" element={<ProductPage />} />
+        <Route path="/reviews" element={<ReviewPage />} />
+        <Route path="/all-reviews" element={<ReviewListPage />} />
+        <Route path="/shop" element={<ShopPage />} />
+        <Route path="/login" element={<LoginFormPage />} />
+        <Route path="/servicing" element={<ServiceList />} />
+        <Route path="/service-appointment" element={<ServiceAppointmentPage />} />
       </Routes>
     </Router>
   );
