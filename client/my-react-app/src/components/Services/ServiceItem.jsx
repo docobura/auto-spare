@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../components/Auth/AuthContext'; // Adjust the import path as needed
+import { useAuth } from '../Auth/AuthContext'; // Adjust the import path as needed
 
 const ServiceItem = ({ label, imageUrl }) => {
   const { isAuthenticated } = useAuth(); // Get authentication status

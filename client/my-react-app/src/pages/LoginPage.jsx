@@ -1,103 +1,86 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../components/Auth/AuthContext'; 
 
+const LoginPage = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const { setAuthToken } = useAuth();
+  const navigate = useNavigate();
 
-const InputField = ({ label, type, value, onChange }) => (
-  <div className="w-full max-w-[752px] mt-14 max-md:mt-10">
-    <label htmlFor={`${type}Input`} className="sr-only">
-      {label}
-    </label>
-    <input
-      type={type}
-      id={`${type}Input`}
-      placeholder={label}
-      className="px-5 py-7 w-full text-3xl rounded-3xl bg-zinc-300"
-      aria-label={label}
-      value={value}
-      onChange={onChange}
-    />
-  </div>
-);
-
-const Button = ({ label }) => (
-  <button
-    type="submit"
-    className="px-16 py-10 mt-24 max-w-full text-4xl text-center text-white whitespace-nowrap rounded-3xl bg-slate-600 w-[752px] max-md:px-5 max-md:mt-10"
-  >
-    {label}
-  </button>
-);
-
-const LoginFormPage = () => {
-  const history = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Add your login logic here
+    setError('');
+
     try {
-      const response = await fetch('/api/login', {
+      const response = await fetch('http://localhost:5000/login', { 
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        // Handle successful login, e.g., save token, redirect, etc.
-        console.log('Login successful:', data);
-        history.push('/dashboard'); // Adjust based on your app's routes
-      } else {
-        // Handle errors
-        console.error('Login failed');
+      if (!response.ok) {
+        throw new Error('Login failed');
       }
-    } catch (error) {
-      console.error('Error during login:', error);
+
+      const data = await response.json();
+      setAuthToken(data.token); 
+      navigate('/'); 
+    } catch (err) {
+      setError(err.message);
     }
   };
 
   return (
-    <main className="flex overflow-hidden flex-col text-black bg-black">
-      <section className="flex relative flex-col justify-center items-center px-20 py-28 w-full min-h-[1080px] max-md:px-5 max-md:pb-24 max-md:max-w-full">
+    <div className="flex overflow-hidden flex-col text-black bg-black">
+      <section className="flex relative flex-col justify-center items-center px-20 py-28 w-full min-h-[1080px] max-md:px-5 max-md:py-24 max-md:max-w-full">
         <img
           loading="lazy"
-          src="https://cdn.builder.io/api/v1/image/assets/TEMP/b31808bc3b17c846107d331197ee3bfd05f335d71853b53a1b5a0c666f2fab1a?apiKey=e5e3ebbd91e648f394e04eeba5e829a3&&apiKey=e5e3ebbd91e648f394e04eeba5e829a3"
+          src="https://cdn.builder.io/api/v1/image/assets/TEMP/5989fe7fa671e74b167f383cfa36762776166d1ba25588db8fe91f6510542c5b?apiKey=27e637b116ae45f88d28619cf8e9c221&&apiKey=27e637b116ae45f88d28619cf8e9c221"
           alt="Background"
           className="object-cover absolute inset-0 size-full"
         />
-        <form
-          className="flex relative flex-col items-end px-20 pt-16 pb-11 mb-0 w-full bg-white bg-opacity-50 max-w-[996px] rounded-[79px] max-md:px-5 max-md:mb-2.5 max-md:max-w-full"
-          onSubmit={handleLogin}
-        >
-          <h1 className="self-center text-8xl text-center max-md:max-w-full max-md:text-4xl">
-            Login Form
-          </h1>
-          <InputField
-            label="Email Address"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <InputField
-            label="Password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <Button label="Login" />
-          <p className="self-center mt-36 ml-11 text-2xl text-blue-950 max-md:mt-10">
-            No Account?{" "}
-            <a href="/signup" className="text-indigo-500">
-              Sign Up Here
-            </a>
-          </p>
-        </form>
+        <div className="flex relative flex-col items-center px-20 pt-12 pb-28 mb-0 ml-16 max-w-full bg-white bg-opacity-50 rounded-[79px] w-[996px] max-md:px-5 max-md:pb-24 max-md:mb-2.5">
+          <form className="flex flex-col items-center mb-0 max-w-full w-[752px] max-md:mb-2.5" onSubmit={handleSubmit}>
+            <h1 className="text-8xl text-center max-md:max-w-full max-md:text-4xl">Login Form</h1>
+            <label htmlFor="email" className="sr-only">Email Address</label>
+            <input
+              id="email"
+              type="email"
+              aria-label="Email Address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="px-4 py-7 mt-12 max-w-full text-3xl rounded-3xl bg-zinc-300 w-[706px] max-md:pr-5 max-md:mt-10"
+              placeholder="Email Address"
+              required
+            />
+            <label htmlFor="password" className="sr-only">Password</label>
+            <input
+              id="password"
+              type="password"
+              aria-label="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="self-stretch px-7 py-6 mx-7 mt-20 text-3xl whitespace-nowrap rounded-3xl bg-zinc-300 max-md:px-5 max-md:mt-10 max-md:mr-2.5 max-md:max-w-full"
+              placeholder="Password"
+              required
+            />
+            <button
+              type="submit"
+              className="self-stretch px-16 py-10 mt-24 text-4xl text-center text-white whitespace-nowrap rounded-3xl bg-slate-600 max-md:px-5 max-md:mt-10 max-md:max-w-full"
+            >
+              Login
+            </button>
+            {error && <p className="mt-4 text-red-600">{error}</p>}
+            <div className="mt-24 ml-2.5 text-2xl text-blue-950 max-md:mt-10">
+              No Account? <a href="/signup" className="text-indigo-500">Sign Up Here</a>
+            </div>
+          </form>
+        </div>
       </section>
-    </main>
+    </div>
   );
 };
 
-export default LoginFormPage;
+export default LoginPage;
