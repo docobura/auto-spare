@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../components/Auth/AuthContext'; 
+import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
   const { setAuthToken } = useAuth();
   const navigate = useNavigate();
 
@@ -33,47 +35,54 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex overflow-hidden flex-col text-black bg-black">
-      <section className="flex relative flex-col justify-center items-center px-20 py-28 w-full min-h-[1080px] max-md:px-5 max-md:py-24 max-md:max-w-full">
+    <div className="flex flex-col w-screen h-screen bg-black text-black">
+      <section className="flex relative flex-col justify-center items-center w-full h-full px-5 py-28 bg-black text-white">
         <img
           loading="lazy"
           src="https://cdn.builder.io/api/v1/image/assets/TEMP/5989fe7fa671e74b167f383cfa36762776166d1ba25588db8fe91f6510542c5b?apiKey=27e637b116ae45f88d28619cf8e9c221&&apiKey=27e637b116ae45f88d28619cf8e9c221"
           alt="Background"
-          className="object-cover absolute inset-0 size-full"
+          className="object-cover absolute inset-0 w-full h-full opacity-50 z-0"
         />
-        <div className="flex relative flex-col items-center px-20 pt-12 pb-28 mb-0 ml-16 max-w-full bg-white bg-opacity-50 rounded-[79px] w-[996px] max-md:px-5 max-md:pb-24 max-md:mb-2.5">
-          <form className="flex flex-col items-center mb-0 max-w-full w-[752px] max-md:mb-2.5" onSubmit={handleSubmit}>
-            <h1 className="text-8xl text-center max-md:max-w-full max-md:text-4xl">Login Form</h1>
-            <label htmlFor="email" className="sr-only">Email Address</label>
+        <div className="flex flex-col items-center px-8 py-12 bg-white bg-opacity-50 rounded-lg w-full max-w-md relative z-10">
+          <form className="flex flex-col items-center w-full" onSubmit={handleSubmit}>
+            <h1 className="text-4xl text-center mb-8">Login Form</h1>
             <input
               id="email"
               type="email"
               aria-label="Email Address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="px-4 py-7 mt-12 max-w-full text-3xl rounded-3xl bg-zinc-300 w-[706px] max-md:pr-5 max-md:mt-10"
+              className="px-4 py-3 mt-4 text-xl rounded-lg bg-gray-200 text-black placeholder-black placeholder-opacity-50 w-full"
               placeholder="Email Address"
               required
             />
-            <label htmlFor="password" className="sr-only">Password</label>
-            <input
-              id="password"
-              type="password"
-              aria-label="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="self-stretch px-7 py-6 mx-7 mt-20 text-3xl whitespace-nowrap rounded-3xl bg-zinc-300 max-md:px-5 max-md:mt-10 max-md:mr-2.5 max-md:max-w-full"
-              placeholder="Password"
-              required
-            />
+            <div className="relative w-full">
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                aria-label="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="px-4 py-3 mt-4 text-xl rounded-lg bg-gray-200 text-black placeholder-black placeholder-opacity-50 w-full pr-12"
+                placeholder="Password"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="py-3 mt-4 absolute inset-y-0 right-0 flex items-center px-4"
+              >
+                {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
+              </button>
+            </div>
             <button
               type="submit"
-              className="self-stretch px-16 py-10 mt-24 text-4xl text-center text-white whitespace-nowrap rounded-3xl bg-slate-600 max-md:px-5 max-md:mt-10 max-md:max-w-full"
+              className="px-8 py-3 mt-6 text-xl text-white bg-gray-700 rounded-lg"
             >
               Login
             </button>
             {error && <p className="mt-4 text-red-600">{error}</p>}
-            <div className="mt-24 ml-2.5 text-2xl text-blue-950 max-md:mt-10">
+            <div className="mt-6 text-lg text-blue-800">
               No Account? <a href="/signup" className="text-indigo-500">Sign Up Here</a>
             </div>
           </form>
