@@ -307,12 +307,15 @@ def get_part_by_id(id):
 def manage_reviews():
     if request.method == 'POST':
         data = request.get_json()
+
+        # Set default values for fields not provided by the frontend
         review = Review(
-            title=data['title'],
-            body=data['body'],
-            user_id=data['user_id'],
-            status=data['status']
+            title=data.get('title', ''),
+            body=data.get('body', ''),
+            user_id=1,  # Assuming the user_id is 1 for now; you can adjust as needed
+            status='pending'  # Set default status to 'pending'
         )
+
         db.session.add(review)
         db.session.commit()
         return jsonify({'id': review.id}), 201
@@ -330,6 +333,7 @@ def manage_reviews():
             } for review in reviews
         ]
         return jsonify(reviews_list), 200
+
 
 @app.route('/orders', methods=['GET', 'POST'])
 def manage_orders():
