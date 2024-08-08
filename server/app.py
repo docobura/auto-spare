@@ -7,6 +7,7 @@ import cloudinary
 import cloudinary.uploader
 import logging
 
+
 # Setting up basic logging
 logging.basicConfig(level=logging.INFO)
 
@@ -399,6 +400,43 @@ def get_services():
             'created_at': service.created_at
         })
     return jsonify(services_list), 200
+
+@app.route('/cart', methods=['GET', 'POST'])
+@jwt_required()
+def manage_cart():
+    if request.method == 'POST':
+        data = request.get_json()
+
+        user_id = get_jwt_identity()  
+
+        cart_item = Cart(
+            product_id=data.get('productId'),
+            quantity=data.get('quantity', 1),
+            user_id=user_id  
+        )
+
+        db.session.add(cart_item)
+        db.session.commit()
+        return jsonify({'id': cart_item.id}), 201
+
+    elif request.method == 'GET':
+        user_id = get_jwt_identity()
+        cart_items = Cart.query.filter_by(user_id=user_id).all()
+        cart_list = [
+            {
+                'id': item.id,
+                'product_id': item.product_id,
+                'quantity': item.quantity,
+                'user_id': item.user_id
+            } for item in cart_items
+        ]
+        return jsonify(cart_list), 200
+
+@app.route('/cart/<int:id>', methods=['GET'])
+def get_cart_item(id):
+    cart_item = Cart.query.get_or_404(id)
+    return jsonify(cart_item.to_dict()), 200
+
 
 if __name__ == '__main__':
     app.run(debug=True)

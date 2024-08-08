@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import ProductDetails from '../components/Products/ProductDetails'; // Ensure the correct path to ProductDetails
+import ProductDetails from '../components/Products/ProductDetails';
 
 const Header = () => {
   return (
@@ -21,29 +21,18 @@ const Header = () => {
   );
 };
 
-const ProductImage = ({ image }) => {
-  return (
-    <img
-      loading="lazy"
-      src={image}
-      alt="Product image"
-      className="object-contain w-full aspect-[1.09] rounded-[41px] max-md:mr-1.5 max-md:max-w-full"
-    />
-  );
-};
-
 const ReviewSection = () => {
   const navigate = useNavigate();
 
   return (
     <section className="mt-10">
-      <h2 className="text-4xl text-white">Reviews</h2>
-      <p className="mt-11 text-3xl max-md:mt-10 max-md:max-w-full">
+      <h2 className="text-2xl text-white">Reviews</h2>
+      <p className="mt-5 text-xl max-md:mt-4 max-md:max-w-full">
         This product doesn't have reviews.
       </p>
       <button 
-        className="px-12 py-6 mt-6 text-3xl text-center bg-slate-600 rounded-[29px] max-md:px-5" 
-        onClick={() => navigate('/add-review')} // Navigate to review form page
+        className="px-8 py-4 mt-4 text-xl text-center bg-slate-600 rounded-[20px] max-md:px-4" 
+        onClick={() => navigate('/reviews')}
       >
         Add a review
       </button>
@@ -57,12 +46,9 @@ const ProductPage = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Fetch product details from backend
     fetch(`http://localhost:5000/parts/${id}`)
       .then(response => response.json())
-      .then(data => {
-        setProduct(data);
-      })
+      .then(data => setProduct(data))
       .catch(error => {
         setError('Error fetching product details.');
         console.error('Error fetching product:', error);
@@ -81,16 +67,9 @@ const ProductPage = () => {
     <main className="flex flex-col px-4 pt-14 pb-10 bg-black min-h-screen max-md:px-2 max-md:pb-6 w-screen">
       <Header />
       <div className="self-center mt-10 w-full max-w-[1200px] max-md:mt-6">
-        <div className="flex gap-5 max-md:flex-col">
-          <div className="flex flex-col w-6/12 max-md:w-full">
-            <div className="flex flex-col grow text-4xl text-white max-md:mt-6">
-              <ProductImage image={product.image_url} />
-              <ReviewSection />
-            </div>
-          </div>
-          <div className="flex flex-col w-6/12 max-md:w-full">
-            <ProductDetails product={product} />
-          </div>
+        <div className="flex flex-col w-full">
+          <ProductDetails product={product} />
+          <ReviewSection />
         </div>
       </div>
     </main>

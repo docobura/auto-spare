@@ -30,23 +30,27 @@ const ProductDetails = () => {
 
     const handleAddToCart = async () => {
         try {
-            const response = await fetch(`/api/cart`, {
+            const response = await fetch(`http://localhost:5000/cart`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}`, // Include token in request headers
+                    'Authorization': `Bearer ${authToken}`, 
                 },
                 body: JSON.stringify({ productId: product.id, quantity: 1 }),
             });
-
-            if (!response.ok) throw new Error('Network response was not ok');
-
+    
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Server error: ${response.status} ${errorText}`);
+            }
+    
             const data = await response.json();
             console.log('Product added to cart:', data);
         } catch (error) {
             console.error('Error adding product to cart:', error);
         }
     };
+    
 
     if (!product) {
         return <div>Loading...</div>;
