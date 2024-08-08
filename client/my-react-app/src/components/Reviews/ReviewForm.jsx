@@ -4,7 +4,7 @@ import { Formik, Form, Field } from 'formik';
 const ReviewForm = () => {
   const handleSubmit = async (values, { resetForm }) => {
     try {
-      const response = await fetch('/api/reviews', {
+      const response = await fetch('http://localhost:5000/reviews', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

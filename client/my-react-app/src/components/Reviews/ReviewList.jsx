@@ -1,17 +1,21 @@
 import React from 'react';
-import ReviewItem from './ReviewItem';
+import ReviewItem from './ReviewItem'; // Adjust the import path as needed
 
 const ReviewList = ({ reviews }) => {
   return (
-    <section className="flex flex-col items-center gap-5">
+    <div className="flex flex-col w-full">
       {reviews.length > 0 ? (
         reviews.map((review, index) => (
-          <ReviewItem key={index} review={review} />
+          <ReviewItem
+            key={index}
+            name={review.name}
+            description={review.description}
+          />
         ))
       ) : (
-        <p className="text-white">No reviews available.</p>
+        <p className="text-lg text-center">No reviews available.</p>
       )}
-    </section>
+    </div>
   );
 };
 

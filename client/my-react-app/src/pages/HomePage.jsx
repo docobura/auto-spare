@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import ProductList from '../components/Products/ProductList'; // Assuming ProductList is in components folder
-import ReviewList from '../components/Reviews/ReviewList';
+import ProductItem from '../components/Products/ProductItem'; // Assuming ProductList is in components folder
 
 const Header = () => {
   return (
@@ -88,11 +87,35 @@ const Updates = () => {
 };
 
 const PartsExplorer = () => {
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    // Fetch products from the API
+    fetch('http://localhost:5000/parts')
+      .then(response => response.json())
+      .then(data => setProducts(data))
+      .catch(error => console.error('Error fetching products:', error));
+  }, []);
+
   return (
     <section className="flex flex-col items-center px-10 pt-14 pb-32 w-screen text-black bg-gray-50 h-screen">
       <div className="flex flex-col w-full max-w-[1080px]">
-        <h2 className="self-center text-3xl text-center">Explore Our Parts</h2>
-        <ProductList />
+        <h2 className="self-center text-3xl font-bold mb-6">Explore Our Parts</h2>
+        <div className="flex flex-wrap gap-6 justify-center">
+          {products.length > 0 ? (
+            products.map(product => (
+              <ProductItem
+                key={product.id}
+                id={product.id}
+                name={product.name}
+                price={product.price}
+                image={product.image}
+              />
+            ))
+          ) : (
+            <p className="text-lg text-center">No products available.</p>
+          )}
+        </div>
       </div>
     </section>
   );
@@ -120,23 +143,23 @@ const ReviewSection = () => {
 
   useEffect(() => {
     // Fetch reviews from the API
-    fetch('/api/reviews')
+    fetch('http://localhost:5000/reviews')
       .then(response => response.json())
       .then(data => setReviews(data))
       .catch(error => console.error('Error fetching reviews:', error));
   }, []);
 
   return (
-    <section className="flex flex-wrap gap-5 px-10 pt-14 pb-32 w-screen text-center text-black bg-white h-screen">
+    <section className="flex flex-col px-10 pt-14 pb-32 w-screen text-center text-black bg-white h-screen">
       <div className="flex flex-col w-full">
-        <h2 className="self-center text-3xl">Previous Reviews</h2>
-        <div className="flex flex-col w-full">
+        <h2 className="text-3xl font-bold mb-8">Previous Reviews</h2>
+        <div className="flex flex-wrap gap-6 justify-center">
           {reviews.length > 0 ? (
             reviews.map((review, index) => (
-              <article key={index} className="flex flex-col items-start p-10 mt-10 bg-zinc-300 rounded-[20px]">
-                <h3 className="text-xl">{review.name}</h3>
-                <hr className="self-stretch mt-8 border-black border-solid" />
-                <p className="mt-5 text-lg">{review.description}</p>
+              <article key={index} className="flex flex-col w-full max-w-2xl bg-zinc-300 rounded-lg p-8">
+                <h3 className="text-2xl font-semibold mb-4">{review.title}</h3>
+                <hr className="my-3 border-black" />
+                <p className="text-lg">{review.body}</p>
               </article>
             ))
           ) : (
@@ -144,12 +167,6 @@ const ReviewSection = () => {
           )}
         </div>
       </div>
-      <img
-        loading="lazy"
-        src="https://cdn.builder.io/api/v1/image/assets/TEMP/53a656cc5106c7e2ea155f8a453f8e4e3da373c5cfd4ed6585c5516eecbfa4dc?apiKey=e5e3ebbd91e648f394e04eeba5e829a3&&apiKey=e5e3ebbd91e648f394e04eeba5e829a3"
-        alt="Decorative"
-        className="object-contain my-auto w-6"
-      />
     </section>
   );
 };
@@ -158,11 +175,11 @@ const FAQItem = ({ question, answer }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className="flex flex-col gap-4 px-10 py-8 mt-10 bg-white border border-gray-300 rounded-lg">
-      <div
-        className="cursor-pointer flex items-center justify-between"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
+    <div
+      className={`relative flex flex-col gap-4 px-10 py-8 mt-10 bg-white border border-gray-300 rounded-lg ${isExpanded ? 'mb-24' : ''}`}
+      onClick={() => setIsExpanded(!isExpanded)}
+    >
+      <div className="cursor-pointer flex items-center justify-between">
         <h3 className="text-2xl">{question}</h3>
         <span className="text-lg text-gray-600">
           {isExpanded ? '-' : '+'}
@@ -174,6 +191,7 @@ const FAQItem = ({ question, answer }) => {
     </div>
   );
 };
+
 
 const FAQs = () => {
   const faqData = [
@@ -200,14 +218,15 @@ const FAQs = () => {
   ];
 
   return (
-    <section className="flex flex-col px-10 pt-10 pb-32 w-screen text-center text-black bg-gray-50 h-screen">
-      <h2 className="text-3xl">FAQ</h2>
+    <section className="flex flex-col px-10 pt-10 pb-36 w-screen text-center text-black bg-gray-50">
+      <h2 className="text-3xl mb-8">FAQ</h2>
       {faqData.map((item, index) => (
         <FAQItem key={index} question={item.question} answer={item.answer} />
       ))}
     </section>
   );
 };
+
 
 const ContactUs = () => (
   <section className="flex flex-col items-center px-10 pt-10 pb-32 w-screen text-center text-black bg-gray-50 h-screen">

@@ -1,8 +1,21 @@
 import React from 'react';
 import ReviewForm from '../components/Reviews/ReviewForm';
-import { Link } from 'react-router-dom';
+import { Link , useNavigate, useLocation } from 'react-router-dom';
 
 const Header = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleContactClick = () => {
+    if (location.pathname === '/') {
+      // Scroll to the contact us section if already on the home page
+      document.getElementById('contact-us')?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      // Redirect to the home page and then scroll to the contact us section
+      navigate('/', { state: { scrollToContact: true } });
+    }
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 py-3 pr-6 pl-6 w-screen bg-white bg-opacity-50 rounded-full">
       <nav className="flex justify-between items-center">
@@ -11,10 +24,11 @@ const Header = () => {
           <div className="text-lg">AutoSavy</div>
         </Link>
         <div className="flex gap-4 text-sm text-black">
-          <Link to="/shop">Shop</Link>
-          <Link to="/dashboard">Dashboard</Link>
-          <Link to="/servicing">Servicing</Link>
-          <Link to="/reviews">Reviews</Link>
+          <Link to="/shop" className="text-black">Shop</Link>
+          <Link to="/dashboard" className="text-black">Dashboard</Link>
+          <Link to="/servicing" className="text-black">Servicing</Link>
+          <Link to="/reviews" className="text-black">Reviews</Link>
+          <Link to="/" onClick={handleContactClick} className="text-black text-lg">Contact Us</Link>
         </div>
       </nav>
     </header>

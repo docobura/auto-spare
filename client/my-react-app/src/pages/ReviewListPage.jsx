@@ -20,14 +20,16 @@ const Header = () => {
   );
 };
 
-const ReviewCard = ({ name, review }) => (
-  <article className="flex flex-col w-6/12 max-md:ml-0 max-md:w-full">
-    <div className="flex flex-col grow items-start pt-11 pr-20 pb-80 pl-7 w-full text-5xl text-black whitespace-nowrap bg-zinc-300 rounded-[71px] max-md:px-5 max-md:pb-24 max-md:mt-10 max-md:max-w-full max-md:text-4xl">
-      <h2 className="max-md:text-4xl">{name}</h2>
-      <p className="mt-14 max-md:mt-10 max-md:text-4xl">{review}</p>
+const ReviewCard = ({ title, body }) => (
+  <article className="flex flex-col w-full max-w-md mx-auto p-4 bg-zinc-300 rounded-lg shadow-md overflow-hidden">
+    <div className="flex flex-col items-start p-4 text-black">
+      <h2 className="text-xl font-bold truncate">{title}</h2>
+      <p className="mt-2 text-base text-gray-800 truncate">{body}</p>
     </div>
   </article>
 );
+
+
 
 const ReviewListPage = () => {
   const [reviews, setReviews] = useState([]);
@@ -37,6 +39,7 @@ const ReviewListPage = () => {
       try {
         const response = await fetch('http://localhost:5000/reviews'); // Update this URL with your API endpoint
         const data = await response.json();
+        console.log(data); // Check if data is being fetched correctly
         setReviews(data);
       } catch (error) {
         console.error('Error fetching reviews:', error);
@@ -56,9 +59,9 @@ const ReviewListPage = () => {
         <div className="flex gap-5 max-md:flex-col">
           {reviews.map((review, index) => (
             <ReviewCard
-              key={index}
-              name={review.customerName}
-              review={review.reviewBody}
+              key={review.id} // Use a unique key if possible
+              title={review.title}
+              body={review.body}
             />
           ))}
         </div>
