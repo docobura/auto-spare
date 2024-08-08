@@ -6,7 +6,7 @@ const ProductList = () => {
 
     useEffect(() => {
         // Fetch products from the API
-        fetch('/api/products')
+        fetch('http://localhost:5000/parts/')
             .then(response => response.json())
             .then(data => setProducts(data));
     }, []);

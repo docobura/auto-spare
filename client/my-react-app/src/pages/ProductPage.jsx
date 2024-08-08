@@ -1,7 +1,6 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import ProductDetails from '../components/Products/ProductDetails'; // Correct path to ProductDetails
-
+import React, { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import ProductDetails from '../components/Products/ProductDetails'; // Ensure the correct path to ProductDetails
 
 const Header = () => {
   return (
@@ -22,11 +21,11 @@ const Header = () => {
   );
 };
 
-const ProductImage = () => {
+const ProductImage = ({ image }) => {
   return (
     <img
       loading="lazy"
-      src="https://cdn.builder.io/api/v1/image/assets/TEMP/dd157876cb30893ccfa761cd6b82b0760180a30997acdb82f2f179f52e60d5e7?apiKey=e5e3ebbd91e648f394e04eeba5e829a3&&apiKey=e5e3ebbd91e648f394e04eeba5e829a3"
+      src={image}
       alt="Product image"
       className="object-contain w-full aspect-[1.09] rounded-[41px] max-md:mr-1.5 max-md:max-w-full"
     />
@@ -53,19 +52,44 @@ const ReviewSection = () => {
 };
 
 const ProductPage = () => {
+  const { id } = useParams();
+  const [product, setProduct] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    // Fetch product details from backend
+    fetch(`http://localhost:5000/parts/${id}`)
+      .then(response => response.json())
+      .then(data => {
+        setProduct(data);
+      })
+      .catch(error => {
+        setError('Error fetching product details.');
+        console.error('Error fetching product:', error);
+      });
+  }, [id]);
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
+  if (!product) {
+    return <div>Loading...</div>;
+  }
+
   return (
-    <main className="flex flex-col px-4 pt-14 pb-10 bg-black min-h-screen max-md:px-2 max-md:pb-6">
+    <main className="flex flex-col px-4 pt-14 pb-10 bg-black min-h-screen max-md:px-2 max-md:pb-6 w-screen">
       <Header />
       <div className="self-center mt-10 w-full max-w-[1200px] max-md:mt-6">
         <div className="flex gap-5 max-md:flex-col">
           <div className="flex flex-col w-6/12 max-md:w-full">
             <div className="flex flex-col grow text-4xl text-white max-md:mt-6">
-              <ProductImage />
+              <ProductImage image={product.image_url} />
               <ReviewSection />
             </div>
           </div>
           <div className="flex flex-col w-6/12 max-md:w-full">
-            <ProductDetails />
+            <ProductDetails product={product} />
           </div>
         </div>
       </div>

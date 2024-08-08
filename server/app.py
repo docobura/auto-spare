@@ -287,6 +287,21 @@ def manage_parts():
             'stock_quantity': part.stock_quantity,
             'image_url': part.image_url
         } for part in parts]), 200
+    
+@app.route('/parts/<int:id>', methods=['GET'])
+def get_part_by_id(id):
+    part = Part.query.get(id)
+    if part is None:
+        abort(404, description="Part not found")
+    
+    return jsonify({
+        'id': part.id,
+        'name': part.name,
+        'description': part.description,
+        'price': str(part.price),
+        'stock_quantity': part.stock_quantity,
+        'image_url': part.image_url
+    }), 200
 
 @app.route('/reviews', methods=['GET', 'POST'])
 def manage_reviews():

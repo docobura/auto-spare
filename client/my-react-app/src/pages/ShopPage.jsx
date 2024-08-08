@@ -86,18 +86,16 @@ const FilterButton = () => {
 // ProductCard Component
 const ProductCard = ({ id, name, price, description, image }) => {
   return (
-    <article className="flex flex-col w-[33%] max-md:ml-0 max-md:w-full">
-      <div className="flex flex-col text-4xl text-black max-md:mt-10">
-        <img loading="lazy" src={image} alt={name} className="object-contain w-full aspect-[0.87] rounded-[41px]" />
-        <h3 className="self-start mt-2.5">{name}</h3>
-        <p className="mt-12 text-3xl max-md:mt-10">Ksh. {price.toLocaleString()}</p>
-        <p className="self-stretch mt-8 text-3xl">{description}</p>
-        <Link to={`/products/${id}`}>
-          <button className="px-8 py-7 mt-2.5 text-4xl text-center text-white whitespace-nowrap bg-slate-600 rounded-[50px] max-md:px-5">
-            Purchase
-          </button>
-        </Link>
-      </div>
+    <article className="flex flex-col w-[25%] max-md:w-full bg-white rounded-lg shadow-md p-4">
+      <img loading="lazy" src={image} alt={name} className="object-contain w-full aspect-[0.87] rounded-lg" />
+      <h3 className="mt-2 text-xl font-semibold text-black">{name}</h3>
+      <p className="mt-1 text-xl text-gray-700">Ksh. {price.toLocaleString()}</p>
+      <p className="mt-2 text-sm text-gray-600">{description}</p>
+      <Link to={`/parts/${id}`}>
+        <button className="mt-4 px-4 py-2 text-lg text-center text-white bg-slate-600 rounded-lg w-full">
+          Purchase
+        </button>
+      </Link>
     </article>
   );
 };
@@ -140,7 +138,7 @@ const ShopPage = () => {
   });
 
   return (
-    <div className="w-screen h-screen bg-black">
+    <div className="w-screen bg-black">
       <main className="flex flex-col px-16 py-12 bg-zinc-300 h-full max-md:px-5">
         <header className="self-center py-6 pr-8 pl-4 max-w-full bg-slate-600 rounded-[31px] w-full max-md:pr-5">
           <nav className="flex gap-5 max-md:flex-col">
@@ -158,7 +156,7 @@ const ShopPage = () => {
             </div>
           </nav>
         </header>
-        <section className="flex flex-wrap gap-10 mt-12 justify-center">
+        <section className="flex flex-wrap gap-6 mt-12 justify-center">
           {sortedParts.map(part => (
             <ProductCard
               key={part.id}
