@@ -11,8 +11,9 @@ const ServiceListContainer = () => {
       try {
         const response = await fetch('http://127.0.0.1:5000/services', {
           headers: {
-            'Authorization': `Bearer ${authToken}` // Include the authToken in the request headers if needed
-          }
+            'Authorization': `Bearer ${authToken}`, // Include the authToken in the request headers if needed
+            'Content-Type': 'application/json', // Ensure the Content-Type is set correctly
+          },
         });
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -30,7 +31,6 @@ const ServiceListContainer = () => {
   }, [authToken]);
 
   const handleServiceSelect = (service) => {
-    // Handle service selection if needed
     console.log('Selected service:', service);
   };
 
