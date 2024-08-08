@@ -9,6 +9,7 @@ import ReviewPage from './pages/ReviewFormPage';
 import ReviewListPage from './pages/ReviewListPage';
 import ShopPage from './pages/ShopPage';
 import LoginFormPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
 import ServiceListContainer from './components/Services/ServiceListContainer';
 import ServiceAppointmentPage from './pages/ServiceAppointmentsPage'; 
 import UserDashboardPage from './pages/UserDashboardPage';
@@ -26,6 +27,7 @@ const App = () => {
           <Route path="/all-reviews" element={<ReviewListPage />} />
           <Route path="/shop" element={<ShopPage />} />
           <Route path="/login" element={<LoginFormPage />} />
+          <Route path="/signup" element={<SignupPage />} />
           <Route path="/servicing" element={<ServiceListContainer />} />
           <Route path="/service-appointment" element={<ServiceAppointmentPage />} />
           <Route path="/dashboard" element={<UserDashboardPage />} />
