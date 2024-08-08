@@ -1,13 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import ServiceList from './ServiceList';
+import { useAuth } from '../Auth/AuthContext'; // Adjust the path to your AuthContext
 
 const ServiceListContainer = () => {
   const [services, setServices] = useState([]);
+  const { authToken } = useAuth(); // Access authToken from the authentication context
 
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:5000/services'); // Ensure this URL matches your Flask endpoint
+        const response = await fetch('http://127.0.0.1:5000/services', {
+          headers: {
+            'Authorization': `Bearer ${authToken}` // Include the authToken in the request headers if needed
+          }
+        });
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
         const data = await response.json();
         setServices(data);
       } catch (error) {
@@ -15,8 +24,10 @@ const ServiceListContainer = () => {
       }
     };
 
-    fetchServices();
-  }, []);
+    if (authToken) {
+      fetchServices(); // Fetch services only if authToken is available
+    }
+  }, [authToken]);
 
   const handleServiceSelect = (service) => {
     // Handle service selection if needed

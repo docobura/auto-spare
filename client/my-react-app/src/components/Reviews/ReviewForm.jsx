@@ -1,13 +1,17 @@
 import React from 'react';
 import { Formik, Form, Field } from 'formik';
+import { useAuth } from '../Auth/AuthContext'; // Adjust the import path as necessary
 
 const ReviewForm = () => {
+  const { authToken } = useAuth(); // Access authentication token
+
   const handleSubmit = async (values, { resetForm }) => {
     try {
       const response = await fetch('http://localhost:5000/reviews', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`, // Include token in request headers
         },
         body: JSON.stringify(values),
       });

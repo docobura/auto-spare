@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { AuthProvider } from './components/Auth/AuthContext';
 import AddProductFormPage from './pages/AddProductPage';
 import HomePage from './pages/HomePage';
 import OrderListPage from './pages/OrderListPage';
@@ -9,27 +10,28 @@ import ReviewListPage from './pages/ReviewListPage';
 import ShopPage from './pages/ShopPage';
 import LoginFormPage from './pages/LoginPage';
 import ServiceListContainer from './components/Services/ServiceListContainer';
-import ServiceAppointmentPage from './pages/ServiceAppointmentsPage'; // Ensure the correct path
+import ServiceAppointmentPage from './pages/ServiceAppointmentsPage'; 
 import UserDashboardPage from './pages/UserDashboardPage';
 
 const App = () => {
   return (
-    
-    <Router>
-      <Routes>
-        <Route path="/add-product" element={<AddProductFormPage />} />
-        <Route path="/" element={<HomePage />} />
-        <Route path="/orders" element={<OrderListPage />} />
-        <Route path="/parts/:id" element={<ProductPage />} />
-        <Route path="/reviews" element={<ReviewPage />} />
-        <Route path="/all-reviews" element={<ReviewListPage />} />
-        <Route path="/shop" element={<ShopPage />} />
-        <Route path="/login" element={<LoginFormPage />} />
-        <Route path="/servicing" element={<ServiceListContainer />} />
-        <Route path="/service-appointment" element={<ServiceAppointmentPage />} />
-        <Route path='dashboard' element={<UserDashboardPage/>}/>
-      </Routes>
-    </Router>
+    <AuthProvider> 
+      <Router>
+        <Routes>
+          <Route path="/add-product" element={<AddProductFormPage />} />
+          <Route path="/" element={<HomePage />} />
+          <Route path="/orders" element={<OrderListPage />} />
+          <Route path="/parts/:id" element={<ProductPage />} />
+          <Route path="/reviews" element={<ReviewPage />} />
+          <Route path="/all-reviews" element={<ReviewListPage />} />
+          <Route path="/shop" element={<ShopPage />} />
+          <Route path="/login" element={<LoginFormPage />} />
+          <Route path="/servicing" element={<ServiceListContainer />} />
+          <Route path="/service-appointment" element={<ServiceAppointmentPage />} />
+          <Route path="/dashboard" element={<UserDashboardPage />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 };
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import ServiceItem from './ServiceItem';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../Auth/AuthContext'; // Adjust the path to your AuthContext
 
 const services = [
   { icon: 'collisionRepairs', label: 'Collision Repairs', imageUrl: 'https://www.shutterstock.com/image-photo/mechanic-garage-auto-workshop-team-600nw-2293582995.jpg' },
@@ -13,9 +14,10 @@ const services = [
 ];
 
 const ServiceList = ({ onServiceSelect }) => {
+  const { authToken } = useAuth(); // Access authToken from the authentication context
+
   return (
     <div className="w-screen h-screen bg-black text-white flex flex-col pt-[72px]"> {/* Adjust padding-top to ensure space for the header */}
-      <Header />
       <section className="flex flex-col items-center px-10 pt-14 pb-32 w-full bg-gray-800 text-white">
         <div className="flex flex-col w-full max-w-[1080px]">
           <h2 className="self-center text-3xl text-center">Our Services:</h2>
@@ -23,7 +25,7 @@ const ServiceList = ({ onServiceSelect }) => {
             {services.map((service, index) => (
               <ServiceItem 
                 key={index} 
-                  label={service.description} 
+                label={service.label} 
                 imageUrl={service.imageUrl} 
                 onClick={() => onServiceSelect(service)}
               />

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import { useAuth } from '../Auth/AuthContext'; // Adjust the import path as necessary
 
 // Validation schema
 const validationSchema = Yup.object({
@@ -42,6 +43,7 @@ const FormInput = ({ name, label, type, value, onChange, onBlur, error }) => (
 );
 
 const AddProductsForm = () => {
+  const { authToken } = useAuth(); // Access authentication token
   const formik = useFormik({
     initialValues: {
       name: '',
@@ -51,8 +53,26 @@ const AddProductsForm = () => {
       imageUrl: '',
     },
     validationSchema,
-    onSubmit: (values) => {
-      console.log('Form submitted:', values);
+    onSubmit: async (values) => {
+      try {
+        const response = await fetch('/api/products', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`, // Include token in request headers
+          },
+          body: JSON.stringify(values),
+        });
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json();
+        console.log('Product added:', data);
+      } catch (error) {
+        console.error('Error adding product:', error);
+      }
     },
   });
 
