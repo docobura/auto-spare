@@ -35,7 +35,7 @@ const ReviewListPage = () => {
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const response = await fetch('/api/reviews'); // Update this URL with your API endpoint
+        const response = await fetch('http://localhost:5000/reviews'); // Update this URL with your API endpoint
         const data = await response.json();
         setReviews(data);
       } catch (error) {

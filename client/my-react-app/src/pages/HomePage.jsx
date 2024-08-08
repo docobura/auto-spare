@@ -24,7 +24,7 @@ const Header = () => {
 
 const Hero = () => {
   return (
-    <section className="flex flex-col items-center px-10 pt-32 pb-60 w-screen bg-black">
+    <section className="flex flex-col items-center px-10 pt-32 pb-60 w-screen bg-black h-screen">
       <h1 className="mt-10 text-5xl text-center text-orange-300">Drive Smart</h1>
       <p className="mt-5 text-xl text-center text-white">Your one-stop shop for car parts and servicing needs!</p>
       <Link to="/shop">
@@ -74,7 +74,7 @@ const Updates = () => {
   ];
 
   return (
-    <section className="flex flex-col px-10 pt-3 pb-24 w-screen bg-white">
+    <section className="flex flex-col px-10 pt-3 pb-24 w-screen bg-white h-screen">
       <h2 className="self-center text-3xl text-center text-black">Latest Updates & Offers</h2>
       <div className="mt-10 flex gap-5 justify-center">
         {updateData.map((update, index) => (
@@ -89,7 +89,7 @@ const Updates = () => {
 
 const PartsExplorer = () => {
   return (
-    <section className="flex flex-col items-center px-10 pt-14 pb-32 w-screen text-black bg-gray-50">
+    <section className="flex flex-col items-center px-10 pt-14 pb-32 w-screen text-black bg-gray-50 h-screen">
       <div className="flex flex-col w-full max-w-[1080px]">
         <h2 className="self-center text-3xl text-center">Explore Our Parts</h2>
         <ProductList />
@@ -99,7 +99,7 @@ const PartsExplorer = () => {
 };
 
 const OrangeSection = () => (
-  <header className="flex flex-col items-center px-10 pt-14 pb-36 w-screen bg-red-200">
+  <header className="flex flex-col items-center px-10 pt-14 pb-36 w-screen bg-red-200 h-screen">
     <div className="flex flex-col items-center w-full max-w-[994px]">
       <h1 className="text-3xl text-center text-black">Rev Up Your Ride Today!</h1>
       <h2 className="self-stretch mt-10 text-3xl text-center text-black">Get the best parts and services for your car.</h2>
@@ -127,7 +127,7 @@ const ReviewSection = () => {
   }, []);
 
   return (
-    <section className="flex flex-wrap gap-5 px-10 pt-14 pb-32 w-screen text-center text-black bg-white">
+    <section className="flex flex-wrap gap-5 px-10 pt-14 pb-32 w-screen text-center text-black bg-white h-screen">
       <div className="flex flex-col w-full">
         <h2 className="self-center text-3xl">Previous Reviews</h2>
         <div className="flex flex-col w-full">
@@ -200,7 +200,7 @@ const FAQs = () => {
   ];
 
   return (
-    <section className="flex flex-col px-10 pt-10 pb-32 w-screen text-center text-black bg-gray-50">
+    <section className="flex flex-col px-10 pt-10 pb-32 w-screen text-center text-black bg-gray-50 h-screen">
       <h2 className="text-3xl">FAQ</h2>
       {faqData.map((item, index) => (
         <FAQItem key={index} question={item.question} answer={item.answer} />
@@ -210,7 +210,7 @@ const FAQs = () => {
 };
 
 const ContactUs = () => (
-  <section className="flex flex-col items-center px-10 pt-10 pb-32 w-screen text-center text-black bg-gray-50">
+  <section className="flex flex-col items-center px-10 pt-10 pb-32 w-screen text-center text-black bg-gray-50 h-screen">
     <div className="flex flex-col w-full max-w-[1080px]">
       <h2 className="self-center text-3xl">Contact Us</h2>
       <div className="flex flex-wrap gap-5 justify-between mt-9">
