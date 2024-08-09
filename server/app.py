@@ -13,6 +13,7 @@ logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 app.config.from_object('config.Config')
+app.config['SECRET_KEY'] = 'your_secret_key_here'
 
 db.init_app(app)
 migrate = Migrate(app, db)
@@ -31,14 +32,24 @@ def index():
 
 @app.route("/login", methods=["POST"])
 def login():
-    username = request.json.get("username", None)
-    password = request.json.get("password", None)
-    user = User.query.filter_by(username=username).first()
+    data = request.json
+    email = data.get("email", None)
+    password = data.get("password", None)
+    
+    print("Email:", email)  # Debug
+    print("Password:", password)  # Debug
+    
+    user = User.query.filter_by(email=email).first()
+    
+    if user is None:
+        print("User not found")
+    elif not user.check_password(password):
+        print("Password check failed")
 
     if user is None or not user.check_password(password):
         return jsonify({"msg": "Bad username or password"}), 401
 
-    access_token = create_access_token(identity={"username": user.username, "role": user.role})
+    access_token = create_access_token(identity={"email": user.email, "role": user.role})
     return jsonify(access_token=access_token, role=user.role)
 
 @app.route('/signup', methods=['POST'])
@@ -51,7 +62,7 @@ def signup():
     username = data.get('username')
     email = data.get('email')
     password = data.get('password')
-    role = data.get('role', 'user')
+    role = data.get('role', 'user')  # Default role to 'user' if not provided
 
     if not username or not email or not password:
         return jsonify({"error": "Missing required fields"}), 400
@@ -82,7 +93,7 @@ def signup():
     except Exception as e:
         db.session.rollback()
         logging.error(f"Error creating user: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An error occurred during signup"}), 500
 
 @app.route("/all_users")
 def get_all_users():
@@ -400,15 +411,20 @@ def get_services():
 @app.route('/cart', methods=['GET', 'POST'])
 @jwt_required()
 def manage_cart():
+    try:
+        current_user = get_jwt_identity()  # Extract user details from the token
+        user_id = current_user['id']  # Extract the user ID from the token
+    except Exception as e:
+        logging.error(f"Error retrieving JWT identity: {e}")
+        return jsonify({"msg": "Token extraction error"}), 401
+
     if request.method == 'POST':
         data = request.get_json()
-
-        user_id = get_jwt_identity()  
 
         cart_item = Cart(
             product_id=data.get('productId'),
             quantity=data.get('quantity', 1),
-            user_id=user_id  
+            user_id=user_id
         )
 
         db.session.add(cart_item)
@@ -416,7 +432,6 @@ def manage_cart():
         return jsonify({'id': cart_item.id}), 201
 
     elif request.method == 'GET':
-        user_id = get_jwt_identity()
         cart_items = Cart.query.filter_by(user_id=user_id).all()
         cart_list = [
             {
@@ -427,11 +442,6 @@ def manage_cart():
             } for item in cart_items
         ]
         return jsonify(cart_list), 200
-
-@app.route('/cart/<int:id>', methods=['GET'])
-def get_cart_item(id):
-    cart_item = Cart.query.get_or_404(id)
-    return jsonify(cart_item.to_dict()), 200
 
 
 if __name__ == '__main__':

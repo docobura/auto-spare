@@ -27,6 +27,7 @@ const LoginPage = () => {
       }
 
       const data = await response.json();
+      console.log("Token received:", data.token);
       setAuthToken(data.token); 
       navigate('/'); 
     } catch (err) {
