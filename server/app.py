@@ -255,39 +255,35 @@ def get_first_user():
 @app.route('/parts', methods=['GET', 'POST'])
 def manage_parts():
     if request.method == 'POST':
-        # data = request.get_json()
-        name = request.form['name']
-        description = request.form['description']
-        price = request.form['price']
-        stock_quantity = request.form['stock_quantity']
-        image = request.files.get('image')
-        
-        if image:
-            upload_result = cloudinary.uploader.upload(image)
-            image_url = upload_result.get('url')
-        else:
-            image_url = request.form['image_url']
-        
+        data = request.get_json()
+
+        # Create a new part instance with the provided data
         part = Part(
-            name=name,
-            description=description,
-            price=float(price),
-            stock_quantity=int(stock_quantity),
-            image_url=image_url
+            name=data.get('name', ''),
+            description=data.get('description', ''),
+            price=float(data.get('price', 0.0)),
+            stock_quantity=int(data.get('stock', 0)),
+            image_url=data.get('imageUrl', '')
         )
+
         db.session.add(part)
         db.session.commit()
         return jsonify({'id': part.id}), 201
-    else:
+
+    elif request.method == 'GET':
         parts = Part.query.all()
-        return jsonify([{
-            'id': part.id,
-            'name': part.name,
-            'description': part.description,
-            'price': str(part.price),
-            'stock_quantity': part.stock_quantity,
-            'image_url': part.image_url
-        } for part in parts]), 200
+        parts_list = [
+            {
+                'id': part.id,
+                'name': part.name,
+                'description': part.description,
+                'price': str(part.price),
+                'stock_quantity': part.stock_quantity,
+                'image_url': part.image_url
+            } for part in parts
+        ]
+        return jsonify(parts_list), 200
+
     
 @app.route('/parts/<int:id>', methods=['GET'])
 def get_part_by_id(id):
