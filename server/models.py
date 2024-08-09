@@ -59,15 +59,13 @@ class Service(db.Model):
 class Cart(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, nullable=False)
-    product_id = db.Column(db.Integer, nullable=False)
-    quantity = db.Column(db.Integer, default=1)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    part_id = db.Column(db.Integer, nullable=False)
+    part_name = db.Column(db.String(100), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
 
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'user_id': self.user_id,
-            'product_id': self.product_id,
-            'quantity': self.quantity,
-            'created_at': self.created_at
-        }
+    def __init__(self, user_id, part_id, part_name, quantity):
+        self.user_id = user_id
+        self.part_id = part_id
+        self.part_name = part_name
+        self.quantity = quantity
+

@@ -48,9 +48,11 @@ def login():
 
     if user is None or not user.check_password(password):
         return jsonify({"msg": "Bad username or password"}), 401
-
-    access_token = create_access_token(identity={"email": user.email, "role": user.role})
+    
+    # Include user ID in the token payload
+    access_token = create_access_token(identity={"id": user.id, "email": user.email, "role": user.role})
     return jsonify(access_token=access_token, role=user.role)
+
 
 @app.route('/signup', methods=['POST'])
 def signup():
@@ -408,40 +410,71 @@ def get_services():
         })
     return jsonify(services_list), 200
 
-@app.route('/cart', methods=['GET', 'POST'])
-@jwt_required()
-def manage_cart():
-    try:
-        current_user = get_jwt_identity()  # Extract user details from the token
-        user_id = current_user['id']  # Extract the user ID from the token
-    except Exception as e:
-        logging.error(f"Error retrieving JWT identity: {e}")
-        return jsonify({"msg": "Token extraction error"}), 401
 
-    if request.method == 'POST':
+@app.route('/cart', methods=['POST'])
+@jwt_required()
+def add_to_cart():
+    try:
+        user_id = get_jwt_identity()
         data = request.get_json()
 
-        cart_item = Cart(
-            product_id=data.get('productId'),
-            quantity=data.get('quantity', 1),
-            user_id=user_id
-        )
+        part_id = data.get('part_id')
+        part_name = data.get('part_name')
+        quantity = data.get('quantity')
 
-        db.session.add(cart_item)
-        db.session.commit()
-        return jsonify({'id': cart_item.id}), 201
+        if not part_id or not part_name or not quantity:
+            return jsonify({'error': 'Missing data'}), 400
 
-    elif request.method == 'GET':
-        cart_items = Cart.query.filter_by(user_id=user_id).all()
-        cart_list = [
-            {
-                'id': item.id,
-                'product_id': item.product_id,
-                'quantity': item.quantity,
-                'user_id': item.user_id
-            } for item in cart_items
-        ]
-        return jsonify(cart_list), 200
+        cart_item = {
+            'user_id': user_id,
+            'part_id': part_id,
+            'part_name': part_name,
+            'quantity': quantity
+        }
+        return jsonify({'message': 'Item added to cart', 'item': cart_item}), 201
+
+    except Exception as e:
+        print(f"Error adding to cart: {e}")
+        return jsonify({'msg': 'Internal server error'}), 500
+    
+@app.route('/cart', methods=['GET'])
+@jwt_required()
+def get_cart():
+    try:
+        current_user = get_jwt_identity()
+        user_id = current_user.get('id')  # Adjust based on your JWT payload structure
+
+        if not user_id:
+            raise ValueError("User ID not found in JWT token")
+
+        items = Cart.query.filter_by(user_id=user_id).all()
+        items_list = [{'part_id': item.part_id, 'part_name': item.part_name, 'quantity': item.quantity} for item in items]
+
+        return jsonify({'items': items_list}), 200
+    except Exception as e:
+        app.logger.error(f'Error fetching cart items: {e}')
+        return jsonify({'msg': 'Internal server error', 'error': str(e)}), 500
+
+
+
+
+@app.route('/cart/<int:item_id>', methods=['DELETE'])
+@jwt_required()
+def delete_cart_item(item_id):
+    current_user = get_jwt_identity()
+    user_id = current_user['id']
+
+    cart_item = Cart.query.get(item_id)
+    if not cart_item:
+        return jsonify({"msg": "Cart item not found"}), 404
+
+    if cart_item.user_id != user_id:
+        return jsonify({"msg": "Unauthorized"}), 403
+
+    db.session.delete(cart_item)
+    db.session.commit()
+
+    return jsonify({"msg": "Item deleted"}), 200
 
 
 if __name__ == '__main__':

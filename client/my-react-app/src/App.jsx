@@ -12,6 +12,7 @@ import SignupPage from './pages/SignupPage';
 import ServiceListContainer from './components/Services/ServiceListContainer';
 import ServiceAppointmentPage from './pages/ServiceAppointmentsPage'; 
 import UserDashboardPage from './pages/UserDashboardPage';
+import CartPage from './pages/CartPage';
 
 const App = () => {
   return (
@@ -29,6 +30,8 @@ const App = () => {
           <Route path="/servicing" element={<ServiceListContainer />} />
           <Route path="/service-appointment" element={<ServiceAppointmentPage />} />
           <Route path="/dashboard" element={<UserDashboardPage />} />
+          <Route path="/cart" element={<CartPage />} />
+
         </Routes>
       </Router>
     </AuthProvider>

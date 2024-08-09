@@ -6,6 +6,7 @@ const ProductDetails = () => {
     const { id } = useParams();
     const { authToken } = useAuth(); // Access authentication token
     const [product, setProduct] = useState(null);
+    const [quantity, setQuantity] = useState(1);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -30,20 +31,23 @@ const ProductDetails = () => {
 
     const handleAddToCart = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/cart`, {
+            const response = await fetch('http://localhost:5000/cart', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}`, 
+                    'Authorization': `Bearer ${authToken}`,  // Use auth token from context
                 },
-                body: JSON.stringify({ productId: product.id, quantity: 1 }),
+                body: JSON.stringify({
+                    part_id: product.id,
+                    part_name: product.name,
+                    quantity: quantity,
+                }),
             });
-    
+
             if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Server error: ${response.status} ${errorText}`);
+                throw new Error(`Server error: ${response.statusText}`);
             }
-    
+
             const data = await response.json();
             console.log('Product added to cart:', data);
         } catch (error) {
@@ -59,7 +63,7 @@ const ProductDetails = () => {
     return (
         <div className="product-details">
             <h1>{product.name}</h1>
-            <img src={product.image} alt={product.name} />
+            <img src={product.image_url} alt={product.name} />
             <p>{product.description}</p>
             <p>${product.price}</p>
             <button onClick={handleAddToCart}>Add to Cart</button>
