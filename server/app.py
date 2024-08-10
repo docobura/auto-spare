@@ -50,7 +50,7 @@ def login():
         return jsonify({"msg": "Bad username or password"}), 401
     
     # Include user ID in the token payload
-    access_token = create_access_token(identity={"id": user.id, "email": user.email, "role": user.role})
+    access_token = create_access_token(identity={"id": user.id})
     return jsonify(access_token=access_token, role=user.role)
 
 
@@ -415,9 +415,10 @@ def get_services():
 @jwt_required()
 def add_to_cart():
     try:
-        user_id = get_jwt_identity()
-        data = request.get_json()
+        user_identity = get_jwt_identity()  # This returns the full user identity, e.g., a dictionary
+        user_id = user_identity['id']  # Extract the user ID
 
+        data = request.get_json()
         part_id = data.get('part_id')
         part_name = data.get('part_name')
         quantity = data.get('quantity')
@@ -425,17 +426,31 @@ def add_to_cart():
         if not part_id or not part_name or not quantity:
             return jsonify({'error': 'Missing data'}), 400
 
-        cart_item = {
+        # Create a new Cart item
+        cart_item = Cart(
+            user_id=user_id,  # Pass the extracted user ID
+            part_id=part_id,
+            part_name=part_name,
+            quantity=quantity
+        )
+
+        # Add the new item to the session and commit the transaction
+        db.session.add(cart_item)
+        db.session.commit()
+
+        return jsonify({'message': 'Item added to cart', 'item': {
             'user_id': user_id,
             'part_id': part_id,
             'part_name': part_name,
             'quantity': quantity
-        }
-        return jsonify({'message': 'Item added to cart', 'item': cart_item}), 201
+        }}), 201
 
     except Exception as e:
         print(f"Error adding to cart: {e}")
-        return jsonify({'msg': 'Internal server error'}), 500
+        db.session.rollback()  # Rollback in case of an error
+        return jsonify({'msg': 'Internal server error', 'error': str(e)}), 500
+
+
     
 @app.route('/cart', methods=['GET'])
 @jwt_required()
@@ -455,27 +470,23 @@ def get_cart():
         app.logger.error(f'Error fetching cart items: {e}')
         return jsonify({'msg': 'Internal server error', 'error': str(e)}), 500
 
-
-
-
-@app.route('/cart/<int:item_id>', methods=['DELETE'])
+@app.route('/cart/<int:part_id>', methods=['DELETE'])
 @jwt_required()
-def delete_cart_item(item_id):
-    current_user = get_jwt_identity()
-    user_id = current_user['id']
-
-    cart_item = Cart.query.get(item_id)
-    if not cart_item:
-        return jsonify({"msg": "Cart item not found"}), 404
-
-    if cart_item.user_id != user_id:
-        return jsonify({"msg": "Unauthorized"}), 403
-
-    db.session.delete(cart_item)
-    db.session.commit()
-
-    return jsonify({"msg": "Item deleted"}), 200
-
+def delete_cart_item(part_id):
+    # Ensure get_jwt_identity() returns just the user_id
+    current_user_id = get_jwt_identity()
+    
+    if isinstance(current_user_id, dict):
+        current_user_id = current_user_id.get('id')
+    
+    cart_item = Cart.query.filter_by(part_id=part_id, user_id=current_user_id).first()
+    
+    if cart_item:
+        db.session.delete(cart_item)
+        db.session.commit()
+        return jsonify({"message": "Item removed from cart"}), 200
+    else:
+        return jsonify({"message": "Item not found or not authorized"}), 403
 
 if __name__ == '__main__':
     app.run(debug=True)

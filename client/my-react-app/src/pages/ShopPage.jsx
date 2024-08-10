@@ -2,6 +2,27 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 
+const Header = () => {
+  return (
+    <header className="fixed top-0 left-0 right-0 z-50 py-3 pr-6 pl-6 w-screen bg-white bg-opacity-50 rounded-full">
+      <nav className="flex justify-between items-center">
+        <Link to="/" className="flex items-center gap-2 text-lg text-black">
+          <div className="flex shrink-0 w-10 h-10 bg-black rounded-full" />
+          <div className="text-lg">AutoSavy</div>
+        </Link>
+        <div className="flex gap-4 text-sm">
+          <Link to="/shop" className="text-black hover:text-gray-700">Shop</Link>
+          <Link to="/dashboard" className="text-black hover:text-gray-700">Dashboard</Link>
+          <Link to="/servicing" className="text-black hover:text-gray-700">Servicing</Link>
+          <Link to="/reviews" className="text-black hover:text-gray-700">Reviews</Link>
+          <Link to="/cart" className="text-black hover:text-gray-700">Cart</Link>
+        </div>
+      </nav>
+    </header>
+  );
+};
+
+// SearchBar Component
 const SearchBar = ({ searchTerm, setSearchTerm }) => {
   const handleSearch = (e) => {
     e.preventDefault();
@@ -89,7 +110,8 @@ const FilterButton = () => {
     </div>
   );
 };
-   
+
+// ProductCard Component
 const ProductCard = ({ id, name, price, description, image }) => {
   return (
     <article className="flex flex-col w-[25%] max-md:w-full bg-white rounded-lg shadow-md p-4">
@@ -144,9 +166,10 @@ const ShopPage = () => {
   });
 
   return (
-    <div className="w-screen bg-black">
-      <main className="flex flex-col px-8 py-4 bg-zinc-300 h-full max-md:px-5">
-        <header className="flex items-center justify-between py-4 px-6 bg-slate-600 rounded-full w-full max-md:pr-5">
+    <div className="w-screen h-screen bg-zinc-300 pt-16">
+      <Header />
+      <main className="flex flex-col px-8 py-4 bg-zinc-300 h-screen max-md:px-5 mt-16">
+        <header className="flex items-center justify-between py-4 px-6 bg-slate-600 rounded-full w-full max-md:pr-2">
           <h1 className="text-xl text-white">Shop</h1>
           <div className="flex items-center gap-3">
             <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />

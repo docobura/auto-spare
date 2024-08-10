@@ -7,6 +7,7 @@ const ProductDetails = () => {
     const { authToken } = useAuth(); // Access authentication token
     const [product, setProduct] = useState(null);
     const [quantity, setQuantity] = useState(1);
+    const [alertMessage, setAlertMessage] = useState(''); // State for alert message
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -50,11 +51,12 @@ const ProductDetails = () => {
 
             const data = await response.json();
             console.log('Product added to cart:', data);
+            setAlertMessage('Product successfully added to cart!'); // Set success message
         } catch (error) {
             console.error('Error adding product to cart:', error);
+            setAlertMessage('Failed to add product to cart.'); // Set error message
         }
     };
-    
 
     if (!product) {
         return <div>Loading...</div>;
@@ -62,6 +64,11 @@ const ProductDetails = () => {
 
     return (
         <div className="product-details">
+            {alertMessage && (
+                <div className={`alert ${alertMessage.startsWith('Failed') ? 'alert-error' : 'alert-success'}`}>
+                    {alertMessage}
+                </div>
+            )}
             <h1>{product.name}</h1>
             <img src={product.image_url} alt={product.name} />
             <p>{product.description}</p>
