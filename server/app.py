@@ -36,9 +36,6 @@ def login():
     email = data.get("email", None)
     password = data.get("password", None)
     
-    print("Email:", email)  # Debug
-    print("Password:", password)  # Debug
-    
     user = User.query.filter_by(email=email).first()
     
     if user is None:
@@ -317,13 +314,16 @@ def get_part_by_id(id):
 def manage_reviews():
     if request.method == 'POST':
         data = request.get_json()
+        user_id = get_jwt_identity().get('id')  # Retrieve user ID from JWT
 
-        # Set default values for fields not provided by the frontend
+        if not user_id:
+            return jsonify({'error': 'User ID not found in token'}), 401
+
         review = Review(
             title=data.get('title', ''),
             body=data.get('body', ''),
-            user_id=1,  # Assuming the user_id is 1 for now; you can adjust as needed
-            status='pending'  # Set default status to 'pending'
+            user_id=user_id,  # Use the user ID from JWT
+            status='pending'
         )
 
         db.session.add(review)
@@ -344,7 +344,27 @@ def manage_reviews():
         ]
         return jsonify(reviews_list), 200
 
+@app.route('/reviews/<int:user_id>', methods=['GET'])
+@jwt_required()
+def get_my_reviews(user_id):
+    token_user_id = get_jwt_identity().get('id')
+    if token_user_id != user_id:
+        return jsonify({'error': 'Unauthorized access'}), 403
 
+    reviews = Review.query.filter_by(user_id=user_id).all()
+    reviews_list = [
+        {
+            'id': review.id,
+            'title': review.title,
+            'body': review.body,
+            'user_id': review.user_id,
+            'status': review.status,
+            'created_at': review.created_at
+        } for review in reviews
+    ]
+    return jsonify(reviews_list), 200
+
+    
 @app.route('/orders', methods=['GET', 'POST'])
 def manage_orders():
     if request.method == 'POST':

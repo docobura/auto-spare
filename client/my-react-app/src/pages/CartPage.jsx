@@ -20,7 +20,7 @@ const Header = () => {
         </nav>
       </header>
     );
-  };
+};
 
 const CartPage = () => {
     const [cartItems, setCartItems] = useState([]);
@@ -93,7 +93,14 @@ const CartPage = () => {
                         <ul className="w-full max-w-2xl">
                             {cartItems.map(item => (
                                 <li key={item.part_id} className="flex justify-between items-center p-4 mb-4 bg-white rounded-lg shadow-md">
-                                    <div>
+                                    {item.image_url && (
+                                        <img 
+                                            src={item.image_url} 
+                                            alt={item.part_name} 
+                                            className="w-16 h-16 object-cover rounded-md mr-4"
+                                        />
+                                    )}
+                                    <div className="flex-grow">
                                         <h2 className="text-lg font-semibold text-black">{item.part_name}</h2>
                                         <p className="text-sm text-gray-700">Quantity: {item.quantity}</p>
                                     </div>
