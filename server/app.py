@@ -7,11 +7,13 @@ import cloudinary
 import cloudinary.uploader
 import logging
 
+
 # Setting up basic logging
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 app.config.from_object('config.Config')
+app.config['SECRET_KEY'] = 'your_secret_key_here'
 
 db.init_app(app)
 migrate = Migrate(app, db)
@@ -30,15 +32,27 @@ def index():
 
 @app.route("/login", methods=["POST"])
 def login():
-    username = request.json.get("username", None)
-    password = request.json.get("password", None)
-    user = User.query.filter_by(username=username).first()
+    data = request.json
+    email = data.get("email", None)
+    password = data.get("password", None)
+    
+    print("Email:", email)  # Debug
+    print("Password:", password)  # Debug
+    
+    user = User.query.filter_by(email=email).first()
+    
+    if user is None:
+        print("User not found")
+    elif not user.check_password(password):
+        print("Password check failed")
 
     if user is None or not user.check_password(password):
         return jsonify({"msg": "Bad username or password"}), 401
-
-    access_token = create_access_token(identity={"username": user.username, "role": user.role})
+    
+    # Include user ID in the token payload
+    access_token = create_access_token(identity={"id": user.id})
     return jsonify(access_token=access_token, role=user.role)
+
 
 @app.route('/signup', methods=['POST'])
 def signup():
@@ -50,7 +64,7 @@ def signup():
     username = data.get('username')
     email = data.get('email')
     password = data.get('password')
-    role = data.get('role', 'user')
+    role = data.get('role', 'user')  # Default role to 'user' if not provided
 
     if not username or not email or not password:
         return jsonify({"error": "Missing required fields"}), 400
@@ -81,7 +95,7 @@ def signup():
     except Exception as e:
         db.session.rollback()
         logging.error(f"Error creating user: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An error occurred during signup"}), 500
 
 @app.route("/all_users")
 def get_all_users():
@@ -254,39 +268,35 @@ def get_first_user():
 @app.route('/parts', methods=['GET', 'POST'])
 def manage_parts():
     if request.method == 'POST':
-        # data = request.get_json()
-        name = request.form['name']
-        description = request.form['description']
-        price = request.form['price']
-        stock_quantity = request.form['stock_quantity']
-        image = request.files.get('image')
-        
-        if image:
-            upload_result = cloudinary.uploader.upload(image)
-            image_url = upload_result.get('url')
-        else:
-            image_url = request.form['image_url']
-        
+        data = request.get_json()
+
+        # Create a new part instance with the provided data
         part = Part(
-            name=name,
-            description=description,
-            price=float(price),
-            stock_quantity=int(stock_quantity),
-            image_url=image_url
+            name=data.get('name', ''),
+            description=data.get('description', ''),
+            price=float(data.get('price', 0.0)),
+            stock_quantity=int(data.get('stock', 0)),
+            image_url=data.get('imageUrl', '')
         )
+
         db.session.add(part)
         db.session.commit()
         return jsonify({'id': part.id}), 201
-    else:
+
+    elif request.method == 'GET':
         parts = Part.query.all()
-        return jsonify([{
-            'id': part.id,
-            'name': part.name,
-            'description': part.description,
-            'price': str(part.price),
-            'stock_quantity': part.stock_quantity,
-            'image_url': part.image_url
-        } for part in parts]), 200
+        parts_list = [
+            {
+                'id': part.id,
+                'name': part.name,
+                'description': part.description,
+                'price': str(part.price),
+                'stock_quantity': part.stock_quantity,
+                'image_url': part.image_url
+            } for part in parts
+        ]
+        return jsonify(parts_list), 200
+
     
 @app.route('/parts/<int:id>', methods=['GET'])
 def get_part_by_id(id):
@@ -307,12 +317,15 @@ def get_part_by_id(id):
 def manage_reviews():
     if request.method == 'POST':
         data = request.get_json()
+
+        # Set default values for fields not provided by the frontend
         review = Review(
-            title=data['title'],
-            body=data['body'],
-            user_id=data['user_id'],
-            status=data['status']
+            title=data.get('title', ''),
+            body=data.get('body', ''),
+            user_id=1,  # Assuming the user_id is 1 for now; you can adjust as needed
+            status='pending'  # Set default status to 'pending'
         )
+
         db.session.add(review)
         db.session.commit()
         return jsonify({'id': review.id}), 201
@@ -330,6 +343,7 @@ def manage_reviews():
             } for review in reviews
         ]
         return jsonify(reviews_list), 200
+
 
 @app.route('/orders', methods=['GET', 'POST'])
 def manage_orders():
@@ -395,6 +409,84 @@ def get_services():
             'created_at': service.created_at
         })
     return jsonify(services_list), 200
+
+
+@app.route('/cart', methods=['POST'])
+@jwt_required()
+def add_to_cart():
+    try:
+        user_identity = get_jwt_identity()  # This returns the full user identity, e.g., a dictionary
+        user_id = user_identity['id']  # Extract the user ID
+
+        data = request.get_json()
+        part_id = data.get('part_id')
+        part_name = data.get('part_name')
+        quantity = data.get('quantity')
+
+        if not part_id or not part_name or not quantity:
+            return jsonify({'error': 'Missing data'}), 400
+
+        # Create a new Cart item
+        cart_item = Cart(
+            user_id=user_id,  # Pass the extracted user ID
+            part_id=part_id,
+            part_name=part_name,
+            quantity=quantity
+        )
+
+        # Add the new item to the session and commit the transaction
+        db.session.add(cart_item)
+        db.session.commit()
+
+        return jsonify({'message': 'Item added to cart', 'item': {
+            'user_id': user_id,
+            'part_id': part_id,
+            'part_name': part_name,
+            'quantity': quantity
+        }}), 201
+
+    except Exception as e:
+        print(f"Error adding to cart: {e}")
+        db.session.rollback()  # Rollback in case of an error
+        return jsonify({'msg': 'Internal server error', 'error': str(e)}), 500
+
+
+    
+@app.route('/cart', methods=['GET'])
+@jwt_required()
+def get_cart():
+    try:
+        current_user = get_jwt_identity()
+        user_id = current_user.get('id')  # Adjust based on your JWT payload structure
+
+        if not user_id:
+            raise ValueError("User ID not found in JWT token")
+
+        items = Cart.query.filter_by(user_id=user_id).all()
+        items_list = [{'part_id': item.part_id, 'part_name': item.part_name, 'quantity': item.quantity} for item in items]
+
+        return jsonify({'items': items_list}), 200
+    except Exception as e:
+        app.logger.error(f'Error fetching cart items: {e}')
+        return jsonify({'msg': 'Internal server error', 'error': str(e)}), 500
+
+@app.route('/cart/<int:part_id>', methods=['DELETE'])
+@jwt_required()
+def delete_cart_item(part_id):
+    # Ensure get_jwt_identity() returns just the user_id
+    current_user_id = get_jwt_identity()
+    
+    if isinstance(current_user_id, dict):
+        current_user_id = current_user_id.get('id')
+    
+    cart_item = Cart.query.filter_by(part_id=part_id, user_id=current_user_id).first()
+    
+    if cart_item:
+        db.session.delete(cart_item)
+        db.session.commit()
+        return jsonify({"message": "Item removed from cart"}), 200
+    else:
+        return jsonify({"message": "Item not found or not authorized"}), 403
 
 if __name__ == '__main__':
     app.run(debug=True)

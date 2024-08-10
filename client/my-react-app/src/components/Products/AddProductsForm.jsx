@@ -1,7 +1,7 @@
 import React from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { useAuth } from '../Auth/AuthContext'; // Adjust the import path as necessary
+import { useAuth } from '../Auth/AuthContext';
 
 // Validation schema
 const validationSchema = Yup.object({
@@ -43,7 +43,7 @@ const FormInput = ({ name, label, type, value, onChange, onBlur, error }) => (
 );
 
 const AddProductsForm = () => {
-  const { authToken } = useAuth(); // Access authentication token
+  const { authToken } = useAuth(); 
   const formik = useFormik({
     initialValues: {
       name: '',
@@ -55,11 +55,11 @@ const AddProductsForm = () => {
     validationSchema,
     onSubmit: async (values) => {
       try {
-        const response = await fetch('/api/products', {
+        const response = await fetch('http://localhost:5000/parts', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`, // Include token in request headers
+            'Authorization': `Bearer ${authToken}`, 
           },
           body: JSON.stringify(values),
         });

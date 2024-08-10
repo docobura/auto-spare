@@ -50,8 +50,8 @@ def populate_data():
         db.session.commit()
 
         # Create Cart Items
-        cart_item1 = Cart(user_id=user1.id, product_id=part1.id, quantity=2, image_url='http://example.com/brakepad.jpg')
-        cart_item2 = Cart(user_id=user1.id, product_id=part2.id, quantity=1, image_url='http://example.com/oilfilter.jpg')
+        cart_item1 = Cart(user_id=user1.id, part_id=part1.id, part_name=part1.name, quantity=2)
+        cart_item2 = Cart(user_id=user1.id, part_id=part2.id, part_name=part2.name, quantity=1)
 
         db.session.add(cart_item1)
         db.session.add(cart_item2)

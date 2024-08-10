@@ -27,12 +27,12 @@ const SignupPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
+  
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
     }
-
+  
     try {
       const response = await fetch('http://localhost:5000/signup', {
         method: 'POST',
@@ -43,11 +43,12 @@ const SignupPage = () => {
           password: formData.password,
         }),
       });
-
+  
       if (!response.ok) {
-        throw new Error('Signup failed');
+        const errorData = await response.json(); 
+        throw new Error(errorData.error || 'Signup failed');
       }
-
+  
       const data = await response.json();
       setAuthToken(data.token);
       navigate('/');
@@ -55,6 +56,7 @@ const SignupPage = () => {
       setError(err.message);
     }
   };
+  
 
   return (
     <div className="flex flex-col w-screen h-screen bg-black text-black">

@@ -6,6 +6,8 @@ const ProductDetails = () => {
     const { id } = useParams();
     const { authToken } = useAuth(); // Access authentication token
     const [product, setProduct] = useState(null);
+    const [quantity, setQuantity] = useState(1);
+    const [alertMessage, setAlertMessage] = useState(''); // State for alert message
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -30,21 +32,29 @@ const ProductDetails = () => {
 
     const handleAddToCart = async () => {
         try {
-            const response = await fetch(`/api/cart`, {
+            const response = await fetch('http://localhost:5000/cart', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}`, // Include token in request headers
+                    'Authorization': `Bearer ${authToken}`,  // Use auth token from context
                 },
-                body: JSON.stringify({ productId: product.id, quantity: 1 }),
+                body: JSON.stringify({
+                    part_id: product.id,
+                    part_name: product.name,
+                    quantity: quantity,
+                }),
             });
 
-            if (!response.ok) throw new Error('Network response was not ok');
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.statusText}`);
+            }
 
             const data = await response.json();
             console.log('Product added to cart:', data);
+            setAlertMessage('Product successfully added to cart!'); // Set success message
         } catch (error) {
             console.error('Error adding product to cart:', error);
+            setAlertMessage('Failed to add product to cart.'); // Set error message
         }
     };
 
@@ -54,8 +64,13 @@ const ProductDetails = () => {
 
     return (
         <div className="product-details">
+            {alertMessage && (
+                <div className={`alert ${alertMessage.startsWith('Failed') ? 'alert-error' : 'alert-success'}`}>
+                    {alertMessage}
+                </div>
+            )}
             <h1>{product.name}</h1>
-            <img src={product.image} alt={product.name} />
+            <img src={product.image_url} alt={product.name} />
             <p>{product.description}</p>
             <p>${product.price}</p>
             <button onClick={handleAddToCart}>Add to Cart</button>

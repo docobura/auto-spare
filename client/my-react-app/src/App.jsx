@@ -6,13 +6,14 @@ import HomePage from './pages/HomePage';
 import OrderListPage from './pages/OrderListPage';
 import ProductPage from './pages/ProductPage';
 import ReviewPage from './pages/ReviewFormPage';
-import ReviewListPage from './pages/ReviewListPage';
 import ShopPage from './pages/ShopPage';
 import LoginFormPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import ServiceListContainer from './components/Services/ServiceListContainer';
 import ServiceAppointmentPage from './pages/ServiceAppointmentsPage'; 
 import UserDashboardPage from './pages/UserDashboardPage';
+import CartPage from './pages/CartPage';
+
 
 const App = () => {
   return (
@@ -24,13 +25,14 @@ const App = () => {
           <Route path="/orders" element={<OrderListPage />} />
           <Route path="/parts/:id" element={<ProductPage />} />
           <Route path="/reviews" element={<ReviewPage />} />
-          <Route path="/all-reviews" element={<ReviewListPage />} />
           <Route path="/shop" element={<ShopPage />} />
           <Route path="/login" element={<LoginFormPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/servicing" element={<ServiceListContainer />} />
           <Route path="/service-appointment" element={<ServiceAppointmentPage />} />
           <Route path="/dashboard" element={<UserDashboardPage />} />
+          <Route path="/cart" element={<CartPage />} />
+
         </Routes>
       </Router>
     </AuthProvider>
