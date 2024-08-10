@@ -14,6 +14,7 @@ import ServiceAppointmentPage from './pages/ServiceAppointmentsPage';
 import UserDashboardPage from './pages/UserDashboardPage';
 import CartPage from './pages/CartPage';
 
+
 const App = () => {
   return (
     <AuthProvider> 
