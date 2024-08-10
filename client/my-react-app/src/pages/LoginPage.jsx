@@ -7,7 +7,7 @@ const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
+  const [showPassword, setShowPassword] = useState(false);
   const { setAuthToken } = useAuth();
   const navigate = useNavigate();
 
@@ -27,7 +27,8 @@ const LoginPage = () => {
       }
 
       const data = await response.json();
-      setAuthToken(data.token); 
+      console.log("Token received:", data.access_token);
+      setAuthToken(data.access_token); // Store token using AuthContext
       navigate('/'); 
     } catch (err) {
       setError(err.message);
