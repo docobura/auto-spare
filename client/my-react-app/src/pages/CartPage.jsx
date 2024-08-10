@@ -70,7 +70,6 @@ const CartPage = () => {
                 throw new Error(`Failed to delete item. Status: ${response.status}`);
             }
 
-            // Update the cart items state to remove the deleted item
             setCartItems(prevItems => prevItems.filter(item => item.part_id !== part_id));
         } catch (err) {
             setError(err.message);
