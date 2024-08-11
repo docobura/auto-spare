@@ -26,9 +26,12 @@ const CartPage = () => {
     const [cartItems, setCartItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const { authToken, userId } = useAuth(); // Get userId from AuthContext
+    const { authToken, userId } = useAuth(); 
 
     useEffect(() => {
+        const storedCartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+        setCartItems(storedCartItems);
+
         const fetchCartItems = async () => {
             try {
                 const response = await fetch('http://localhost:5000/cart', {
@@ -44,7 +47,11 @@ const CartPage = () => {
                 }
 
                 const data = await response.json();
-                setCartItems(data.items || []);
+                const items = data.items || [];
+                
+                localStorage.setItem('cartItems', JSON.stringify(items));
+                
+                setCartItems(items);
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -69,7 +76,10 @@ const CartPage = () => {
                 throw new Error(`Failed to delete item. Status: ${response.status}`);
             }
 
-            setCartItems(prevItems => prevItems.filter(item => item.part_id !== part_id));
+            const updatedItems = cartItems.filter(item => item.part_id !== part_id);
+            localStorage.setItem('cartItems', JSON.stringify(updatedItems));
+
+            setCartItems(updatedItems);
         } catch (err) {
             setError(err.message);
         }
@@ -77,7 +87,7 @@ const CartPage = () => {
 
     const handleCheckout = async () => {
         console.log('Checkout data:', {
-            user_id: userId, // Ensure you use userId correctly
+            user_id: userId, 
             cart_items: cartItems
         });
     
@@ -89,7 +99,7 @@ const CartPage = () => {
                     'Authorization': `Bearer ${authToken}`
                 },
                 body: JSON.stringify({
-                    user_id: userId, // Make sure this matches the server-side expectation
+                    user_id: userId, 
                     cart_items: cartItems
                 })
             });
@@ -102,15 +112,15 @@ const CartPage = () => {
     
             const result = await response.json();
             console.log('Order created successfully:', result);
-            // Handle successful order creation
+
+            localStorage.removeItem('cartItems');
+            setCartItems([]);
+
         } catch (error) {
             console.error('Error during checkout:', error.message);
-            // Show error message to user
         }
     };
     
-    
-
     if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
     if (error) return <div className="flex justify-center items-center h-screen">Error fetching cart items: {error}</div>;
 

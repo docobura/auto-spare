@@ -373,11 +373,6 @@ def get_orders():
     orders = Order.query.options(joinedload(Order.cart_items)).filter_by(user_id=user_id).all()
     return jsonify([order.to_dict() for order in orders])
     
-@app.route('/all-orders', methods=['GET'])
-def all_orders():
-    orders = Order.query.all()
-    return jsonify([order.to_dict() for order in orders])
-
 @app.route('/orders', methods=['POST'])
 def create_order():
     data = request.get_json()

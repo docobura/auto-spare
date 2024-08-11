@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './components/Auth/AuthContext';
 import AddProductFormPage from './pages/AddProductPage';
 import HomePage from './pages/HomePage';
@@ -16,28 +16,30 @@ import AdminDashboard from './pages/AdminDashboardPage';
 import CartPage from './pages/CartPage';
 import MyReviewsPage from './pages/MyReviewsPage';
 import MyOrdersPage from './pages/MyOrdersPage';
+import AdminRoute from './components/AdminRoute'; 
 
 const App = () => {
   return (
-    <AuthProvider> 
+    <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/add-product" element={<AddProductFormPage />} />
           <Route path="/" element={<HomePage />} />
-          <Route path="/orders" element={<OrderListPage />} />
+          <Route path="/shop" element={<ShopPage />} />
           <Route path="/parts/:id" element={<ProductPage />} />
           <Route path="/reviews" element={<ReviewPage />} />
-          <Route path="/shop" element={<ShopPage />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/my-reviews" element={<MyReviewsPage />} />
+          <Route path="/my-orders" element={<MyOrdersPage />} />
           <Route path="/login" element={<LoginFormPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/servicing" element={<ServiceListContainer />} />
           <Route path="/service-appointment" element={<ServiceAppointmentPage />} />
           <Route path="/dashboard" element={<UserDashboardPage />} />
-          <Route path="/admin-dashboard" element={<AdminDashboard />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/my-reviews" element={<MyReviewsPage />} />
-          <Route path="/my-orders" element={<MyOrdersPage />} />
-
+          
+          {/* Admin-only routes */}
+          <Route path="/admin-dashboard" element={<AdminRoute element={<AdminDashboard />} />} />
+          <Route path="/add-product" element={<AdminRoute element={<AddProductFormPage />} />} />
+          <Route path="/orders" element={<AdminRoute element={<OrderListPage />} />} />
         </Routes>
       </Router>
     </AuthProvider>
