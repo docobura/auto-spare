@@ -8,7 +8,7 @@ const LoginPage = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const { login } = useAuth(); // Use login instead of setAuthToken
+    const { login } = useAuth(); 
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -27,8 +27,9 @@ const LoginPage = () => {
             }
 
             const data = await response.json();
-            console.log("Token received:", data.access_token);
-            login(data.access_token, data.userId); // Use login with token and userId
+            // console.log("Token received:", data.access_token);
+            // console.log("UserId:", data.userId)
+            login(data.access_token, data.userId);  // Pass userId to login function
             navigate('/'); 
         } catch (err) {
             setError(err.message);

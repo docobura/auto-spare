@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '../components/Auth/AuthContext'; // Adjust the import path as necessary
-import { Link } from 'react-router-dom'; // Make sure you have react-router-dom installed
+import { useAuth } from '../components/Auth/AuthContext';
+import { Link } from 'react-router-dom'; 
 
 const Header = () => {
     return (
@@ -26,7 +26,7 @@ const CartPage = () => {
     const [cartItems, setCartItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const { authToken } = useAuth();
+    const { authToken, userId } = useAuth(); // Get userId from AuthContext
 
     useEffect(() => {
         const fetchCartItems = async () => {
@@ -44,7 +44,6 @@ const CartPage = () => {
                 }
 
                 const data = await response.json();
-                console.log('Fetched data:', data);
                 setCartItems(data.items || []);
             } catch (err) {
                 setError(err.message);
@@ -75,6 +74,42 @@ const CartPage = () => {
             setError(err.message);
         }
     };
+
+    const handleCheckout = async () => {
+        console.log('Checkout data:', {
+            user_id: userId, // Ensure you use userId correctly
+            cart_items: cartItems
+        });
+    
+        try {
+            const response = await fetch('http://localhost:5000/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                },
+                body: JSON.stringify({
+                    user_id: userId, // Make sure this matches the server-side expectation
+                    cart_items: cartItems
+                })
+            });
+    
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Error during checkout:', errorData);
+                throw new Error(errorData.msg || 'Unknown error');
+            }
+    
+            const result = await response.json();
+            console.log('Order created successfully:', result);
+            // Handle successful order creation
+        } catch (error) {
+            console.error('Error during checkout:', error.message);
+            // Show error message to user
+        }
+    };
+    
+    
 
     if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
     if (error) return <div className="flex justify-center items-center h-screen">Error fetching cart items: {error}</div>;
@@ -113,6 +148,14 @@ const CartPage = () => {
                                 </li>
                             ))}
                         </ul>
+                    )}
+                    {cartItems.length > 0 && (
+                        <button
+                            onClick={handleCheckout}
+                            className="px-8 py-3 mt-6 text-xl text-white bg-green-600 rounded-lg"
+                        >
+                            Checkout
+                        </button>
                     )}
                 </section>
             </main>

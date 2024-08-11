@@ -8,6 +8,7 @@ import cloudinary.uploader
 import logging
 
 
+
 # Setting up basic logging
 logging.basicConfig(level=logging.INFO)
 
@@ -39,16 +40,14 @@ def login():
     user = User.query.filter_by(email=email).first()
     
     if user is None:
-        print("User not found")
-    elif not user.check_password(password):
-        print("Password check failed")
-
-    if user is None or not user.check_password(password):
         return jsonify({"msg": "Bad username or password"}), 401
     
-    # Include user ID in the token payload
+    if not user.check_password(password):
+        return jsonify({"msg": "Bad username or password"}), 401
+    
     access_token = create_access_token(identity={"id": user.id})
-    return jsonify(access_token=access_token, role=user.role)
+    return jsonify(access_token=access_token, userId=user.id, role=user.role)
+
 
 
 @app.route('/signup', methods=['POST'])
@@ -310,39 +309,40 @@ def get_part_by_id(id):
         'image_url': part.image_url
     }), 200
 
-@app.route('/reviews', methods=['GET', 'POST'])
-def manage_reviews():
-    if request.method == 'POST':
-        data = request.get_json()
-        user_id = get_jwt_identity().get('id')  # Retrieve user ID from JWT
+@app.route('/reviews', methods=['GET'])
+def get_reviews():
+    reviews = Review.query.all()
+    reviews_list = [
+        {
+            'id': review.id,
+            'title': review.title,
+            'body': review.body,
+            'user_id': review.user_id,
+            'status': review.status,
+            'created_at': review.created_at
+        } for review in reviews
+    ]
+    return jsonify(reviews_list), 200
 
-        if not user_id:
-            return jsonify({'error': 'User ID not found in token'}), 401
+@app.route('/reviews', methods=['POST'])
+@jwt_required()  
+def create_review():
+    data = request.get_json()
+    user_id = get_jwt_identity().get('id')  
 
-        review = Review(
-            title=data.get('title', ''),
-            body=data.get('body', ''),
-            user_id=user_id,  # Use the user ID from JWT
-            status='pending'
-        )
+    if not user_id:
+        return jsonify({'error': 'User ID not found in token'}), 401
 
-        db.session.add(review)
-        db.session.commit()
-        return jsonify({'id': review.id}), 201
+    review = Review(
+        title=data.get('title', ''),
+        body=data.get('body', ''),
+        user_id=user_id, 
+        status='pending'
+    )
 
-    elif request.method == 'GET':
-        reviews = Review.query.all()
-        reviews_list = [
-            {
-                'id': review.id,
-                'title': review.title,
-                'body': review.body,
-                'user_id': review.user_id,
-                'status': review.status,
-                'created_at': review.created_at
-            } for review in reviews
-        ]
-        return jsonify(reviews_list), 200
+    db.session.add(review)
+    db.session.commit()
+    return jsonify({'id': review.id}), 201
 
 @app.route('/reviews/<int:user_id>', methods=['GET'])
 @jwt_required()
@@ -364,33 +364,50 @@ def get_my_reviews(user_id):
     ]
     return jsonify(reviews_list), 200
 
+@app.route('/orders', methods=['GET'])
+@jwt_required()
+def get_orders():
+    user_id = get_jwt_identity().get('id')
+    if user_id is None:
+        return jsonify({"msg": "User ID is missing"}), 400
+
+    orders = Order.query.filter_by(user_id=user_id).all()
+    return jsonify([order.to_dict() for order in orders])
+
     
-@app.route('/orders', methods=['GET', 'POST'])
-def manage_orders():
-    if request.method == 'POST':
-        data = request.get_json()
+@app.route('/orders', methods=['POST'])
+def create_order():
+    data = request.get_json()
+    user_id = data.get('user_id')
+    cart_items = data.get('cart_items')
+    
+    if not user_id or not cart_items:
+        return jsonify({'msg': 'Invalid request data'}), 400
+
+    try:
+        total_amount = 0
+        for item in cart_items:
+            part = Part.query.get(item['part_id'])
+            if part is None:
+                return jsonify({'msg': f'Invalid part ID {item["part_id"]} in cart'}), 400
+            
+            total_amount += part.price * item['quantity']
+
+        # Create order
         order = Order(
-            user_id=data['user_id'],
-            status=data['status'],
-            total_amount=data['total_amount']
+            user_id=user_id,
+            status='Pending',
+            total_amount=total_amount
         )
         db.session.add(order)
         db.session.commit()
+
         return jsonify({'id': order.id}), 201
 
-    elif request.method == 'GET':
-        orders = Order.query.all()
-        orders_list = [
-            {
-                'id': order.id,
-                'user_id': order.user_id,
-                'order_date': order.order_date,
-                'status': order.status,
-                'total_amount': str(order.total_amount),
-                'created_at': order.created_at
-            } for order in orders
-        ]
-        return jsonify(orders_list), 200
+    except Exception as e:
+        print(f"Error during checkout: {e}")
+        return jsonify({'msg': 'Failed to create order', 'error': str(e)}), 500
+
 
 @app.route('/services', methods=['POST'])
 def create_service():

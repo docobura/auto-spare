@@ -4,7 +4,6 @@ from sqlalchemy import MetaData
 from werkzeug.security import generate_password_hash, check_password_hash
 
 metadata = MetaData()
-
 db = SQLAlchemy(metadata=metadata)
 
 class User(db.Model):
@@ -21,6 +20,9 @@ class User(db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    orders = db.relationship('Order', back_populates='user')
+    cart_items = db.relationship('Cart', back_populates='user')
+
 class Part(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
@@ -29,6 +31,9 @@ class Part(db.Model):
     stock_quantity = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     image_url = db.Column(db.String(500), nullable=True)
+
+    cart_items = db.relationship('Cart', back_populates='part')
+
 
 class Review(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -46,6 +51,23 @@ class Order(db.Model):
     total_amount = db.Column(db.Numeric(10, 2), nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
+    user = db.relationship('User', back_populates='orders')
+    cart_items = db.relationship('Cart', back_populates='order', overlaps='cart_items,order_association')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'order_date': self.order_date.isoformat() if self.order_date else None,
+            'status': self.status,
+            'total_amount': str(self.total_amount) if self.total_amount else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'user': self.user.username if self.user else None,  # Assuming you want to include the username
+            'cart_items': [item.to_dict() for item in self.cart_items]  # Assuming `Cart` model has a `to_dict` method
+        }
+
+
+
 class Service(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)
@@ -56,6 +78,10 @@ class Service(db.Model):
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     image_url = db.Column(db.String(500), nullable=True)
 
+    order = db.relationship('Order', backref=db.backref('services', lazy=True))
+    mechanic = db.relationship('User', backref=db.backref('services', lazy=True))
+
+
 class Cart(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -64,6 +90,11 @@ class Cart(db.Model):
     quantity = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     image_url = db.Column(db.String(500), nullable=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=True)
+
+    user = db.relationship('User', back_populates='cart_items')
+    part = db.relationship('Part', back_populates='cart_items')
+    order = db.relationship('Order', back_populates='cart_items')
 
 class Appointment(db.Model):
     id = db.Column(db.Integer, primary_key=True)

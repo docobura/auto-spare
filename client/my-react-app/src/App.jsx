@@ -13,8 +13,8 @@ import ServiceListContainer from './components/Services/ServiceListContainer';
 import ServiceAppointmentPage from './pages/ServiceAppointmentsPage'; 
 import UserDashboardPage from './pages/UserDashboardPage';
 import CartPage from './pages/CartPage';
-import MyOrdersPage from './pages/MyOrdersPage';
 import MyReviewsPage from './pages/MyReviewsPage';
+import MyOrdersPage from './pages/MyOrdersPage';
 
 const App = () => {
   return (
@@ -33,8 +33,8 @@ const App = () => {
           <Route path="/service-appointment" element={<ServiceAppointmentPage />} />
           <Route path="/dashboard" element={<UserDashboardPage />} />
           <Route path="/cart" element={<CartPage />} />
-          <Route path="/my-orders" element={<MyOrdersPage />} />
           <Route path="/my-reviews" element={<MyReviewsPage />} />
+          <Route path="/my-orders" element={<MyOrdersPage />} />
 
         </Routes>
       </Router>

@@ -12,7 +12,7 @@ const SignupPage = () => {
     showPassword: false
   });
   const [error, setError] = useState('');
-  const { setAuthToken } = useAuth();
+  const { setAuthToken } = useAuth(); // Use the hook to get setAuthToken
   const navigate = useNavigate();
 
   const handleInputChange = (e) => {
@@ -50,13 +50,14 @@ const SignupPage = () => {
       }
   
       const data = await response.json();
-      setAuthToken(data.token);
+      if (setAuthToken) {
+        setAuthToken(data.token); // Set auth token
+      }
       navigate('/');
     } catch (err) {
       setError(err.message);
     }
   };
-  
 
   return (
     <div className="flex flex-col w-screen h-screen bg-black text-black">

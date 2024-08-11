@@ -3,7 +3,7 @@ import { Formik, Form, Field } from 'formik';
 import { useAuth } from '../Auth/AuthContext';
 
 const ReviewForm = () => {
-  const { authToken } = useAuth(); 
+  const { authToken } = useAuth();
 
   const handleSubmit = async (values, { resetForm }) => {
     try {
@@ -18,20 +18,20 @@ const ReviewForm = () => {
           body: values.body,
         }),
       });
-  
+
       if (!response.ok) {
-        throw new Error('Network response was not ok');
+        const errorData = await response.json();  // Capture error response
+        throw new Error(errorData.message || 'Network response was not ok');
       }
-  
+
       resetForm();
       alert('Review submitted successfully!');
     } catch (error) {
       console.error('Error submitting review:', error);
-      alert('Failed to submit review.');
+      alert('Failed to submit review: ' + error.message);
     }
   };
-  
-  
+
   return (
     <Formik
       initialValues={{ title: '', body: '' }}
