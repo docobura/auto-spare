@@ -12,6 +12,7 @@ import SignupPage from './pages/SignupPage';
 import ServiceListContainer from './components/Services/ServiceListContainer';
 import ServiceAppointmentPage from './pages/ServiceAppointmentsPage'; 
 import UserDashboardPage from './pages/UserDashboardPage';
+import AdminDashboard from './pages/AdminDashboardPage';
 import CartPage from './pages/CartPage';
 import MyReviewsPage from './pages/MyReviewsPage';
 import MyOrdersPage from './pages/MyOrdersPage';
@@ -32,6 +33,7 @@ const App = () => {
           <Route path="/servicing" element={<ServiceListContainer />} />
           <Route path="/service-appointment" element={<ServiceAppointmentPage />} />
           <Route path="/dashboard" element={<UserDashboardPage />} />
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/my-reviews" element={<MyReviewsPage />} />
           <Route path="/my-orders" element={<MyOrdersPage />} />

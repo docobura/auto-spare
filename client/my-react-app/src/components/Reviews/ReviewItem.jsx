@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuth } from '../Auth/AuthContext'; // Adjust the import path as necessary
 
 const ReviewItem = ({ name, description }) => {
-  const { authToken } = useAuth(); // Access authentication token if needed
+  const { authToken } = useAuth(); 
 
   return (
     <article className="flex flex-col items-start p-10 mt-10 bg-zinc-300 rounded-[20px]">

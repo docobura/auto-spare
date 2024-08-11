@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import OrderList from '../components/Orders/OrderList';
+import { useAuth } from '../components/Auth/AuthContext'; // Adjust the import path as necessary
 
 const Header = () => {
   return (
@@ -22,22 +23,51 @@ const Header = () => {
   );
 };
 
-
 const OrderListPage = () => {
+  const { authToken } = useAuth();
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/all-orders', {
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+          },
+        });
+
+        if (!response.ok) throw new Error('Network response was not ok');
+        
+        const data = await response.json();
+        setOrders(data);
+      } catch (error) {
+        setError(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [authToken]);
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error fetching orders: {error.message}</p>;
+
   return (
-    <main className="flex flex-col h-screen bg-stone-950 w-screen">
+    <main className="flex flex-col w-screen bg-gray-100">
       <Header />
-      <section className="flex-grow px-4 sm:px-6 lg:px-8 py-12">
-        <div className="max-w-7xl mx-auto w-screen">
+      <section className="flex-grow pt-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-3xl font-bold mb-8 text-gray-800">Customer Orders</h1>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <OrderList />
-            <OrderList />
+            <OrderList orders={orders} />
           </div>
         </div>
       </section>
     </main>
   );
 };
-
 
 export default OrderListPage;
