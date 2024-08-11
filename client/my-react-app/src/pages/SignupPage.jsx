@@ -12,7 +12,7 @@ const SignupPage = () => {
     showPassword: false
   });
   const [error, setError] = useState('');
-  const { setAuthToken } = useAuth(); // Use the hook to get setAuthToken
+  const { setAuthToken } = useAuth(); 
   const navigate = useNavigate();
 
   const handleInputChange = (e) => {

@@ -90,7 +90,7 @@ class Cart(db.Model):
     quantity = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     image_url = db.Column(db.String(500), nullable=True)
-    order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('order.id'))
 
     user = db.relationship('User', back_populates='cart_items')
     part = db.relationship('Part', back_populates='cart_items')

@@ -6,8 +6,7 @@ from models import db, User, Review, Part, Order, Service, Cart
 import cloudinary
 import cloudinary.uploader
 import logging
-
-
+from sqlalchemy.orm import joinedload
 
 # Setting up basic logging
 logging.basicConfig(level=logging.INFO)
@@ -371,9 +370,8 @@ def get_orders():
     if user_id is None:
         return jsonify({"msg": "User ID is missing"}), 400
 
-    orders = Order.query.filter_by(user_id=user_id).all()
+    orders = Order.query.options(joinedload(Order.cart_items)).filter_by(user_id=user_id).all()
     return jsonify([order.to_dict() for order in orders])
-
     
 @app.route('/orders', methods=['POST'])
 def create_order():
