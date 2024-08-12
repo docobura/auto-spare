@@ -23,13 +23,13 @@ const Header = () => {
   );
 };
 
-const ServiceAppointmentPage = () => {
+const ServiceAppointmentPage = ({ serviceId }) => {
   const [appointmentDate, setAppointmentDate] = useState(null);
   const location = useLocation();
   const query = new URLSearchParams(location.search);
-  const icon = query.get('icon');
   const label = query.get('label');
   const imageUrl = query.get('imageUrl');
+  const navigate = useNavigate();
 
   const handleDateChange = (date) => {
     setAppointmentDate(date);
@@ -41,10 +41,14 @@ const ServiceAppointmentPage = () => {
       return;
     }
 
-    const bookingData = { icon, label, imageUrl, appointmentDate };
+    const bookingData = { 
+      service_id: serviceId, 
+      appointment_date: appointmentDate, 
+      status: 'Pending' 
+    };
 
     try {
-      const response = await fetch('/api/book-service', {
+      const response = await fetch('http://127.0.0.1:5000/appointment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -53,22 +57,18 @@ const ServiceAppointmentPage = () => {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        console.log('Booking service:', data);
         alert('Appointment confirmed!');
         navigate('/confirmation'); // Redirect to a confirmation page
       } else {
-        console.error('Error booking service:', response.statusText);
         alert('Failed to book the appointment. Please try again.');
       }
     } catch (error) {
-      console.error('Error booking service:', error);
       alert('An error occurred. Please try again.');
     }
   };
 
   return (
-    <div className="w-screen h-screen bg-black text-white flex flex-col pt-[72px]"> {/* Adjust padding-top to ensure space for the header */}
+    <div className="w-screen h-screen bg-black text-white flex flex-col pt-[72px]">
       <Header />
       <div className="flex flex-col items-center flex-grow">
         <div className="flex flex-col items-center bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md mx-auto">

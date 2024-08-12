@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import ServiceList from './ServiceList';
-import { useAuth } from '../components/Auth/AuthContext';   
+import { useAuth } from '../Auth/AuthContext';   
 
 const ServiceForm = () => {
   const [selectedService, setSelectedService] = useState(null);
