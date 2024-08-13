@@ -47,13 +47,19 @@ const ProductPage = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch(`http://localhost:5000/parts/${id}`)
-      .then(response => response.json())
-      .then(data => setProduct(data))
-      .catch(error => {
+    const fetchProduct = async () => {
+      try {
+        const response = await fetch(`http://localhost:5000/parts/${id}`);
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.json();
+        setProduct(data);
+      } catch (error) {
         setError('Error fetching product details.');
         console.error('Error fetching product:', error);
-      });
+      }
+    };
+
+    fetchProduct();
   }, [id]);
 
   if (error) {

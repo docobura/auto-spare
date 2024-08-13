@@ -7,6 +7,7 @@ import cloudinary
 import cloudinary.uploader
 import logging
 from sqlalchemy.orm import joinedload
+from intasend import APIService
 
 # Setting up basic logging
 logging.basicConfig(level=logging.INFO)
@@ -259,6 +260,7 @@ def get_first_user():
     except Exception as e:
         logging.error(f"Error fetching the first user: {e}")
         return jsonify({"error": str(e)}), 500
+    
 @app.route('/parts', methods=['GET', 'POST'])
 def manage_parts():
     if request.method == 'POST':
@@ -308,7 +310,7 @@ def manage_part_by_id(id):
     part = Part.query.get(id)
     if part is None:
         abort(404, description="Part not found")
-    
+
     if request.method == 'GET':
         return jsonify({
             'id': part.id,
@@ -324,7 +326,7 @@ def manage_part_by_id(id):
         if part.image_url:
             public_id = part.image_url.split('/')[-1].split('.')[0]  # Extract the public ID
             cloudinary.uploader.destroy(public_id, resource_type="image")
-        
+
         db.session.delete(part)
         db.session.commit()
         return jsonify({'message': 'Part deleted successfully'}), 200
@@ -336,7 +338,7 @@ def manage_part_by_id(id):
         price = request.form.get('price')
         stock_quantity = request.form.get('stock')
         image_file = request.files.get('image')
-        
+
         # Update fields if provided
         if name is not None:
             part.name = name
@@ -357,9 +359,9 @@ def manage_part_by_id(id):
             # Upload the new image to Cloudinary
             result = cloudinary.uploader.upload(image_file, folder="your_folder_name")
             part.image_url = result.get('secure_url', '')
-        
+
         db.session.commit()
-        
+
         return jsonify({
             'id': part.id,
             'name': part.name,
@@ -368,7 +370,6 @@ def manage_part_by_id(id):
             'stock_quantity': part.stock_quantity,
             'image_url': part.image_url
         }), 200
-
 
 @app.route('/reviews', methods=['GET'])
 def get_reviews():
@@ -519,16 +520,21 @@ def add_to_cart():
         part_id = data.get('part_id')
         part_name = data.get('part_name')
         quantity = data.get('quantity')
+        price = data.get('price')
         image_url = data.get('image_url')
 
-        if not part_id or not part_name or not quantity:
+        if not part_id or not part_name or not quantity or price is None:
             return jsonify({'error': 'Missing data'}), 400
+
+        total_amount = price * quantity  # Calculate total_amount
 
         cart_item = Cart(
             user_id=user_id,
             part_id=part_id,
             part_name=part_name,
             quantity=quantity,
+            price=price,
+            total_amount=total_amount,  # Include total_amount in Cart instance
             image_url=image_url
         )
 
@@ -540,6 +546,8 @@ def add_to_cart():
             'part_id': part_id,
             'part_name': part_name,
             'quantity': quantity,
+            'price': price,
+            'total_amount': total_amount,  # Include total_amount in response
             'image_url': image_url
         }}), 201
 
@@ -547,6 +555,7 @@ def add_to_cart():
         print(f"Error adding to cart: {e}")
         db.session.rollback()
         return jsonify({'msg': 'Internal server error', 'error': str(e)}), 500
+
 
 @app.route('/cart', methods=['GET'])
 @jwt_required()
@@ -558,9 +567,23 @@ def get_cart():
             raise ValueError("User ID not found in JWT token")
 
         items = Cart.query.filter_by(user_id=user_id).all()
-        items_list = [{'part_id': item.part_id, 'part_name': item.part_name, 'quantity': item.quantity, 'image_url': item.image_url} for item in items]
+        
+        # Prepare the response data
+        items_list = [
+            {
+                'part_id': item.part_id,
+                'part_name': item.part_name,
+                'quantity': item.quantity,
+                'image_url': item.image_url,
+                'price': float(item.price), 
+                'total_amount': float(item.total_amount)  
+            }
+            for item in items
+        ]
 
-        return jsonify({'items': items_list}), 200
+        total_amount = sum(item['total_amount'] for item in items_list)
+
+        return jsonify({'items': items_list, 'total_amount': total_amount}), 200
 
     except Exception as e:
         app.logger.error(f'Error fetching cart items: {e}')
@@ -586,6 +609,43 @@ def delete_cart_item(part_id):
     except Exception as e:
         app.logger.error(f'Error deleting cart item: {e}')
         return jsonify({'msg': 'Internal server error', 'error': str(e)}), 500
+
+
+publishable_key = "ISPubKey_live_e35bc477-8dd6-4f58-9cf9-44868bd77cd5"
+private_key = "ISSecretKey_live_1b9aa9e8-c3a9-4d07-99f2-56577a609ff5"
+
+service = APIService(token=private_key, publishable_key=publishable_key, private_key=None)
+
+@app.route('/create-checkout', methods=['POST'])
+def create_checkout():
+    data = request.json
+    phone_number = data.get('phone_number')
+    email = data.get('email')
+    amount = data.get('amount')
+
+    # Log incoming data for debugging
+    print(f"Received data: phone_number={phone_number}, email={email}, amount={amount}")
+
+    if not phone_number or not email or amount is None:
+        return jsonify({"error": "Missing required fields"}), 400
+
+    try:
+        response = service.collect.checkout(
+            phone_number=phone_number,
+            email=email,
+            amount=amount,
+            currency="KES",
+            comment="Service Fees"
+        )
+        payment_url = response.get("url")
+        return jsonify({"payment_url": payment_url})
+    except Exception as e:
+        print(f"Error during checkout: {e}")
+        return jsonify({"error": str(e)}), 500
+
+def generate_payment_url(phone_number, email, amount):
+    # Dummy function to generate payment URL
+    return 'http://example.com/payment'
 
 if __name__ == '__main__':
     app.run(debug=True)

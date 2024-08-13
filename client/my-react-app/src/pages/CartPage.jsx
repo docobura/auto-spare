@@ -4,34 +4,34 @@ import { Link } from 'react-router-dom';
 
 const Header = () => {
     return (
-      <header className="fixed top-0 left-0 right-0 z-50 py-3 pr-6 pl-6 w-screen bg-white bg-opacity-50 rounded-full">
-        <nav className="flex justify-between items-center">
-          <Link to="/" className="flex items-center gap-2 text-lg text-black">
-            <div className="flex shrink-0 w-10 h-10 bg-black rounded-full" />
-            <div className="text-lg">AutoSavy</div>
-          </Link>
-          <div className="flex gap-4 text-sm">
-            <Link to="/shop" className="text-black hover:text-gray-700">Shop</Link>
-            <Link to="/dashboard" className="text-black hover:text-gray-700">Dashboard</Link>
-            <Link to="/servicing" className="text-black hover:text-gray-700">Servicing</Link>
-            <Link to="/reviews" className="text-black hover:text-gray-700">Reviews</Link>
-            <Link to="/cart" className="text-black hover:text-gray-700">Cart</Link>
-          </div>
-        </nav>
-      </header>
+        <header className="fixed top-0 left-0 right-0 z-50 py-3 pr-6 pl-6 w-screen bg-white bg-opacity-50 rounded-full">
+            <nav className="flex justify-between items-center">
+                <Link to="/" className="flex items-center gap-2 text-lg text-black">
+                    <div className="flex shrink-0 w-10 h-10 bg-black rounded-full" />
+                    <div className="text-lg">AutoSavy</div>
+                </Link>
+                <div className="flex gap-4 text-sm">
+                    <Link to="/shop" className="text-black hover:text-gray-700">Shop</Link>
+                    <Link to="/dashboard" className="text-black hover:text-gray-700">Dashboard</Link>
+                    <Link to="/servicing" className="text-black hover:text-gray-700">Servicing</Link>
+                    <Link to="/reviews" className="text-black hover:text-gray-700">Reviews</Link>
+                    <Link to="/cart" className="text-black hover:text-gray-700">Cart</Link>
+                </div>
+            </nav>
+        </header>
     );
 };
 
 const CartPage = () => {
     const [cartItems, setCartItems] = useState([]);
+    const [totalAmount, setTotalAmount] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const { authToken, userId } = useAuth(); 
+    const [phoneNumber, setPhoneNumber] = useState('');
+    const [userEmail, setUserEmail] = useState('');
+    const { authToken, userId } = useAuth(); // Use userId and authToken from context
 
     useEffect(() => {
-        const storedCartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
-        setCartItems(storedCartItems);
-
         const fetchCartItems = async () => {
             try {
                 const response = await fetch('http://localhost:5000/cart', {
@@ -41,26 +41,50 @@ const CartPage = () => {
                         'Authorization': `Bearer ${authToken}`
                     }
                 });
-
+    
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
-
+    
                 const data = await response.json();
                 const items = data.items || [];
+                const amount = data.total_amount || 0;
                 
+                console.log('Fetched cart items:', items); // Verify data structure
                 localStorage.setItem('cartItems', JSON.stringify(items));
-                
                 setCartItems(items);
+                setTotalAmount(amount); // Set total amount from backend
             } catch (err) {
                 setError(err.message);
             } finally {
                 setLoading(false);
             }
         };
+    
+        const fetchUserEmail = async () => {
+            try {
+                const userResponse = await fetch(`http://localhost:5000/users/${userId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (!userResponse.ok) {
+                    throw new Error('Failed to fetch user details');
+                }
+
+                const userData = await userResponse.json();
+                setUserEmail(userData.email);
+            } catch (error) {
+                console.error('Error fetching user email:', error.message);
+            }
+        };
 
         fetchCartItems();
-    }, [authToken]);
+        fetchUserEmail();
+    }, [authToken, userId]);
 
     const handleRemoveItem = async (part_id) => {
         try {
@@ -78,7 +102,6 @@ const CartPage = () => {
 
             const updatedItems = cartItems.filter(item => item.part_id !== part_id);
             localStorage.setItem('cartItems', JSON.stringify(updatedItems));
-
             setCartItems(updatedItems);
         } catch (err) {
             setError(err.message);
@@ -92,7 +115,8 @@ const CartPage = () => {
         });
     
         try {
-            const response = await fetch('http://localhost:5000/orders', {
+            // Post cart data to your order endpoint
+            const orderResponse = await fetch('http://localhost:5000/orders', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -104,18 +128,44 @@ const CartPage = () => {
                 })
             });
     
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error('Error during checkout:', errorData);
-                throw new Error(errorData.msg || 'Unknown error');
+            if (!orderResponse.ok) {
+                const errorData = await orderResponse.json();
+                console.error('Error during order creation:', errorData);
+                throw new Error(errorData.error || 'Unknown error');
             }
     
-            const result = await response.json();
-            console.log('Order created successfully:', result);
-
+            const orderResult = await orderResponse.json();
+            console.log('Order created successfully:', orderResult);
+    
+            // Now proceed with payment
+            const paymentResponse = await fetch('http://localhost:5000/create-checkout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    phone_number: phoneNumber, // Use phoneNumber state
+                    email: userEmail, // Use userEmail state
+                    amount: totalAmount // Use totalAmount from the state
+                })
+            });
+    
+            if (!paymentResponse.ok) {
+                const errorData = await paymentResponse.json();
+                console.error('Error during checkout creation:', errorData);
+                throw new Error(errorData.error || 'Unknown error');
+            }
+    
+            const paymentResult = await paymentResponse.json();
+            console.log('Checkout created successfully:', paymentResult);
+    
+            // Redirect user to the payment URL
+            window.location.href = paymentResult.payment_url;
+    
+            // Clear cart items
             localStorage.removeItem('cartItems');
             setCartItems([]);
-
+    
         } catch (error) {
             console.error('Error during checkout:', error.message);
         }
@@ -160,12 +210,21 @@ const CartPage = () => {
                         </ul>
                     )}
                     {cartItems.length > 0 && (
-                        <button
-                            onClick={handleCheckout}
-                            className="px-8 py-3 mt-6 text-xl text-white bg-green-600 rounded-lg"
-                        >
-                            Checkout
-                        </button>
+                        <>
+                            <input
+                                type="text"
+                                placeholder="Enter your phone number"
+                                value={phoneNumber}
+                                onChange={(e) => setPhoneNumber(e.target.value)}
+                                className="px-4 py-2 mt-4 w-full max-w-lg text-white rounded-lg"
+                            />
+                            <button
+                                onClick={handleCheckout}
+                                className="px-8 py-3 mt-6 text-xl text-white bg-green-600 rounded-lg"
+                            >
+                                Checkout
+                            </button>
+                        </>
                     )}
                 </section>
             </main>
