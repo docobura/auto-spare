@@ -1,4 +1,4 @@
-from flask import Flask, make_response, jsonify, request
+from flask import Flask, make_response, jsonify, request, abort
 from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
@@ -259,19 +259,30 @@ def get_first_user():
     except Exception as e:
         logging.error(f"Error fetching the first user: {e}")
         return jsonify({"error": str(e)}), 500
-
 @app.route('/parts', methods=['GET', 'POST'])
 def manage_parts():
     if request.method == 'POST':
-        data = request.get_json()
+        # Parse form data
+        name = request.form.get('name', '')
+        description = request.form.get('description', '')
+        price = float(request.form.get('price', 0.0))
+        stock_quantity = int(request.form.get('stock', 0))
+        image_file = request.files.get('image')
+
+        if image_file:
+            # Upload the image to Cloudinary
+            result = cloudinary.uploader.upload(image_file, folder="your_folder_name")
+            image_url = result.get('secure_url', '')
+        else:
+            image_url = ''
 
         # Create a new part instance with the provided data
         part = Part(
-            name=data.get('name', ''),
-            description=data.get('description', ''),
-            price=float(data.get('price', 0.0)),
-            stock_quantity=int(data.get('stock', 0)),
-            image_url=data.get('imageUrl', '')
+            name=name,
+            description=description,
+            price=price,
+            stock_quantity=stock_quantity,
+            image_url=image_url
         )
 
         db.session.add(part)
@@ -292,21 +303,72 @@ def manage_parts():
         ]
         return jsonify(parts_list), 200
 
-    
-@app.route('/parts/<int:id>', methods=['GET'])
-def get_part_by_id(id):
+@app.route('/parts/<int:id>', methods=['GET', 'DELETE', 'PATCH'])
+def manage_part_by_id(id):
     part = Part.query.get(id)
     if part is None:
         abort(404, description="Part not found")
     
-    return jsonify({
-        'id': part.id,
-        'name': part.name,
-        'description': part.description,
-        'price': str(part.price),
-        'stock_quantity': part.stock_quantity,
-        'image_url': part.image_url
-    }), 200
+    if request.method == 'GET':
+        return jsonify({
+            'id': part.id,
+            'name': part.name,
+            'description': part.description,
+            'price': str(part.price),
+            'stock_quantity': part.stock_quantity,
+            'image_url': part.image_url
+        }), 200
+
+    elif request.method == 'DELETE':
+        # Remove the image from Cloudinary if it exists
+        if part.image_url:
+            public_id = part.image_url.split('/')[-1].split('.')[0]  # Extract the public ID
+            cloudinary.uploader.destroy(public_id, resource_type="image")
+        
+        db.session.delete(part)
+        db.session.commit()
+        return jsonify({'message': 'Part deleted successfully'}), 200
+
+    elif request.method == 'PATCH':
+        # Parse form data
+        name = request.form.get('name')
+        description = request.form.get('description')
+        price = request.form.get('price')
+        stock_quantity = request.form.get('stock')
+        image_file = request.files.get('image')
+        
+        # Update fields if provided
+        if name is not None:
+            part.name = name
+        if description is not None:
+            part.description = description
+        if price is not None:
+            part.price = float(price)
+        if stock_quantity is not None:
+            part.stock_quantity = int(stock_quantity)
+        
+        # Handle image update
+        if image_file:
+            # Delete old image from Cloudinary if it exists
+            if part.image_url:
+                public_id = part.image_url.split('/')[-1].split('.')[0]
+                cloudinary.uploader.destroy(public_id, resource_type="image")
+            
+            # Upload the new image to Cloudinary
+            result = cloudinary.uploader.upload(image_file, folder="your_folder_name")
+            part.image_url = result.get('secure_url', '')
+        
+        db.session.commit()
+        
+        return jsonify({
+            'id': part.id,
+            'name': part.name,
+            'description': part.description,
+            'price': str(part.price),
+            'stock_quantity': part.stock_quantity,
+            'image_url': part.image_url
+        }), 200
+
 
 @app.route('/reviews', methods=['GET'])
 def get_reviews():

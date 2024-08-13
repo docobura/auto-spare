@@ -128,30 +128,120 @@ const ProductCard = ({ id, name, price, description, image }) => {
   );
 };
 
+// AddPartForm Component
+const AddPartForm = ({ onClose, onAddPart }) => {
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [price, setPrice] = useState('');
+  const [stock, setStock] = useState('');
+  const [image, setImage] = useState(null);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('description', description);
+    formData.append('price', price);
+    formData.append('stock', stock);
+    formData.append('image', image);
+
+    fetch('http://localhost:5000/parts', {
+      method: 'POST',
+      body: formData,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        onAddPart(data);
+        onClose();
+      })
+      .catch((error) => {
+        console.error('Error adding part:', error);
+      });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white p-8 rounded-lg shadow-lg w-[90%] max-w-md">
+        <h2 className="text-xl font-semibold text-black mb-4">Add New Part</h2>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <input
+            type="text"
+            placeholder="Part Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg"
+            required
+          />
+          <textarea
+            placeholder="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg"
+            required
+          />
+          <input
+            type="number"
+            placeholder="Price"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg"
+            required
+          />
+          <input
+            type="number"
+            placeholder="Stock Quantity"
+            value={stock}
+            onChange={(e) => setStock(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg"
+            required
+          />
+          <input
+            type="file"
+            onChange={(e) => setImage(e.target.files[0])}
+            className="px-3 py-2 border border-gray-300 rounded-lg"
+            required
+          />
+          <div className="flex justify-end gap-2">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-white bg-gray-500 rounded-lg">
+              Cancel
+            </button>
+            <button type="submit" className="px-4 py-2 text-white bg-blue-500 rounded-lg">
+              Add Part
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 // ShopPage Component
 const ShopPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('');
   const [products, setProducts] = useState([]);
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   useEffect(() => {
-    // Fetch products from backend
     fetch('http://localhost:5000/parts')
-      .then(response => response.json())
-      .then(data => {
+      .then((response) => response.json())
+      .then((data) => {
         setProducts(data);
       })
-      .catch(error => {
+      .catch((error) => {
         console.error('Error fetching products:', error);
       });
   }, []);
 
-  // Filter products based on search term
-  const filteredParts = products.filter(part =>
+  const handleAddPart = (newPart) => {
+    setProducts([...products, newPart]);
+  };
+
+  const filteredParts = products.filter((part) =>
     part.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Sort products based on selected filter
   const sortedParts = filteredParts.sort((a, b) => {
     switch (filter) {
       case 'price':
@@ -174,10 +264,16 @@ const ShopPage = () => {
           <div className="flex items-center gap-3">
             <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
             <FilterButton />
+            <button
+              onClick={() => setIsFormOpen(true)}
+              className="px-4 py-2 text-white bg-blue-500 rounded-lg"
+            >
+              Post New Part
+            </button>
           </div>
         </header>
         <section className="flex flex-wrap gap-6 mt-8 justify-center h-full">
-          {sortedParts.map(part => (
+          {sortedParts.map((part) => (
             <ProductCard
               key={part.id}
               id={part.id}
@@ -188,6 +284,12 @@ const ShopPage = () => {
             />
           ))}
         </section>
+        {isFormOpen && (
+          <AddPartForm
+            onClose={() => setIsFormOpen(false)}
+            onAddPart={handleAddPart}
+          />
+        )}
       </main>
     </div>
   );
