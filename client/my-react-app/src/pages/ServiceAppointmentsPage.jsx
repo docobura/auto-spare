@@ -1,37 +1,7 @@
 import React, { useState } from "react";
-import { useLocation, Link } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-
-const Header = () => {
-  return (
-    <header className="fixed top-0 left-0 right-0 z-50 py-3 pr-6 pl-6 w-screen bg-white bg-opacity-50 rounded-full">
-      <nav className="flex justify-between items-center">
-        <Link to="/" className="flex items-center gap-2 text-lg text-black">
-          <div className="flex shrink-0 w-10 h-10 bg-black rounded-full" />
-          <div className="text-lg">AutoSavy</div>
-        </Link>
-        <div className="flex gap-4 text-sm">
-          <Link to="/shop" className="text-black hover:text-gray-700">
-            Shop
-          </Link>
-          <Link to="/dashboard" className="text-black hover:text-gray-700">
-            Dashboard
-          </Link>
-          <Link to="/servicing" className="text-black hover:text-gray-700">
-            Servicing
-          </Link>
-          <Link to="/reviews" className="text-black hover:text-gray-700">
-            Reviews
-          </Link>
-          <Link to="/cart" className="text-black hover:text-gray-700">
-            Cart
-          </Link>
-        </div>
-      </nav>
-    </header>
-  );
-};
 
 const ServiceAppointmentPage = ({ serviceId, userId }) => {
   console.log("User ID:", userId);
@@ -98,7 +68,6 @@ const ServiceAppointmentPage = ({ serviceId, userId }) => {
 
   return (
     <div className="w-screen h-screen bg-black text-white flex flex-col pt-[72px]">
-      <Header />
       <div className="flex flex-col items-center flex-grow">
         <div className="flex flex-col items-center bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md mx-auto">
           {!showSummary ? (
@@ -124,37 +93,7 @@ const ServiceAppointmentPage = ({ serviceId, userId }) => {
                 Confirm Appointment
               </button>
             </>
-          ) : (
-            <div className="bg-white text-black p-4 rounded-lg w-full">
-              <h3 className="text-2xl mb-4">Appointment Summary</h3>
-              <table className="table-auto w-full mb-4">
-                <tbody>
-                  <tr>
-                    <td className="border px-4 py-2">Service:</td>
-                    <td className="border px-4 py-2">
-                      {bookingData.serviceName}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="border px-4 py-2">Date & Time:</td>
-                    <td className="border px-4 py-2">
-                      {bookingData.appointment_date.toString()}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="border px-4 py-2">Status:</td>
-                    <td className="border px-4 py-2">{bookingData.status}</td>
-                  </tr>
-                </tbody>
-              </table>
-              <button
-                className="bg-green-500 text-white rounded-md hover:bg-green-600 p-2"
-                onClick={() => alert("Appointment Confirmed!")}
-              >
-                Done
-              </button>
-            </div>
-          )}
+          ) : null}
         </div>
       </div>
     </div>
