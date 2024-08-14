@@ -3,7 +3,7 @@ import ServiceItem from './ServiceItem';
 
 const ServiceList = ({ services }) => {
   return (
-    <section className="flex flex-wrap gap-6 justify-center py-10 bg-gray-100">
+    <section className="flex flex-wrap gap-6 px-10 justify-center py-10 bg-gray-400 h-screen">
       {services.map((service, index) => (
         <ServiceItem
           key={index}

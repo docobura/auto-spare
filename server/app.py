@@ -61,7 +61,7 @@ def signup():
     username = data.get('username')
     email = data.get('email')
     password = data.get('password')
-    role = data.get('role', 'user')  # Default role to 'user' if not provided
+    role = data.get('role', 'user')  
 
     if not username or not email or not password:
         return jsonify({"error": "Missing required fields"}), 400
@@ -609,10 +609,6 @@ def delete_cart_item(part_id):
     except Exception as e:
         app.logger.error(f'Error deleting cart item: {e}')
         return jsonify({'msg': 'Internal server error', 'error': str(e)}), 500
-
-
-
-
 
 publishable_key = "ISPubKey_live_e35bc477-8dd6-4f58-9cf9-44868bd77cd5"
 private_key = "ISSecretKey_live_1b9aa9e8-c3a9-4d07-99f2-56577a609ff5"

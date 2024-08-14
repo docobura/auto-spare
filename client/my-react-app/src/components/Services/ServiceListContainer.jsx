@@ -34,7 +34,7 @@ const ServiceListContainer = () => {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`, // Include token in request headers
+            'Authorization': `Bearer ${authToken}`, 
           },
         });
         const data = await response.json();
@@ -48,10 +48,10 @@ const ServiceListContainer = () => {
   }, [authToken]);
 
   return (
-    <>
+    <div className="h-screen w-screen">
       <Header />
       <ServiceList services={services} />
-    </>
+    </div>
   );
 };
 
