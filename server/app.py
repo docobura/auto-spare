@@ -1,8 +1,10 @@
 from flask import Flask, make_response, jsonify, request, abort
+from datetime import datetime
+from flask import Flask, make_response, jsonify, request
 from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
-from models import db, User, Review, Part, Order, Service, Cart
+from models import Appointment, db, User, Review, Part, Order, Service, Cart
 import cloudinary
 import cloudinary.uploader
 import logging
@@ -683,6 +685,86 @@ def generate_payment_url(phone_number, email, amount):
     else:
         print('Error:', response.json())
         return None
+@app.route('/appointment', methods=['POST'])
+def create_appointment():
+    try:
+        data = request.get_json()  # Use get_json() to parse JSON
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+        
+        # Validate the required fields
+        if 'user_id' not in data or 'service_id' not in data or 'appointment_date' not in data or 'status' not in data:
+            return jsonify({"error": "Missing required fields"}), 400
+        
+        appointment_date = datetime.strptime(data['appointment_date'], '%Y-%m-%d %H:%M:%S')  # Ensure correct datetime format
+
+        new_appointment = Appointment(
+            user_id=data['user_id'],
+            service_id=data['service_id'],
+            appointment_date=appointment_date,
+            status=data['status']
+        )
+
+        db.session.add(new_appointment)
+        db.session.commit()
+
+        return jsonify({"id": new_appointment.id}), 201
+    
+    except Exception as e:
+        print(f"Error: {e}")  # Print the exception for debugging
+        return jsonify({"error": "An error occurred while creating the appointment"}), 500
+
+
+@app.route('/appointment/<int:id>', methods=['GET'])
+def get_appointment(id):
+    appointment = Appointment.query.get_or_404(id)
+    return jsonify({
+        'id': appointment.id,
+        'user_id': appointment.user_id,
+        'service_id': appointment.service_id,
+        'appointment_date': appointment.appointment_date.isoformat(),
+        'status': appointment.status,
+        'created_at': appointment.created_at.isoformat()
+    })
+
+@app.route('/appointment', methods=['GET'])
+def get_all_appointments():
+    appointments = Appointment.query.all()
+    results = []
+    
+    for appointment in appointments:
+        appointment_data = {
+            'id': appointment.id,
+            'user_id': appointment.user_id,
+            'service_id': appointment.service_id,
+            'appointment_date': appointment.appointment_date.isoformat(),
+            'status': appointment.status,
+            'created_at': appointment.created_at.isoformat()
+        }
+        results.append(appointment_data)
+    
+    return jsonify(results), 200
+
+
+
+
+@app.route('/appointment/<int:id>', methods=['PUT'])
+def update_appointment(id):
+    appointment = Appointment.query.get_or_404(id)
+    data = request.json
+    appointment.status = data.get('status', appointment.status)
+    db.session.commit()
+    return jsonify({
+        'id': appointment.id,
+        'status': appointment.status
+    })
+
+@app.route('/appointment/<int:id>', methods=['DELETE'])
+def delete_appointment(id):
+    appointment = Appointment.query.get_or_404(id)
+    db.session.delete(appointment)
+    db.session.commit()
+    return jsonify({'message': 'Appointment deleted'}), 204
 
 
 if __name__ == '__main__':

@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import ServiceList from './ServiceList';
-import { useAuth } from '../Auth/AuthContext';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import ServiceList from "./ServiceList";
+import ServiceForm from "./ServiceForm";
+import { useAuth } from "../Auth/AuthContext";
+import { Link } from "react-router-dom";
 
 const Header = () => {
   return (
@@ -12,11 +13,21 @@ const Header = () => {
           <div className="text-lg">AutoSavy</div>
         </Link>
         <div className="flex gap-4 text-sm">
-          <Link to="/shop" className="text-black hover:text-gray-700">Shop</Link>
-          <Link to="/dashboard" className="text-black hover:text-gray-700">Dashboard</Link>
-          <Link to="/servicing" className="text-black hover:text-gray-700">Servicing</Link>
-          <Link to="/reviews" className="text-black hover:text-gray-700">Reviews</Link>
-          <Link to="/cart" className="text-black hover:text-gray-700">Cart</Link>
+          <Link to="/shop" className="text-black hover:text-gray-700">
+            Shop
+          </Link>
+          <Link to="/dashboard" className="text-black hover:text-gray-700">
+            Dashboard
+          </Link>
+          <Link to="/servicing" className="text-black hover:text-gray-700">
+            Servicing
+          </Link>
+          <Link to="/reviews" className="text-black hover:text-gray-700">
+            Reviews
+          </Link>
+          <Link to="/cart" className="text-black hover:text-gray-700">
+            Cart
+          </Link>
         </div>
       </nav>
     </header>
@@ -30,17 +41,15 @@ const ServiceListContainer = () => {
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:5000/services', {
-          method: 'GET',
+        const response = await fetch("http://127.0.0.1:5000/services", {
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`, 
+            Authorization: `Bearer ${authToken}`, // Include token in request headers
           },
         });
         const data = await response.json();
         setServices(data);
       } catch (error) {
-        console.error('Error fetching services:', error);
+        console.error("Error fetching services:", error);
       }
     };
 
@@ -50,6 +59,7 @@ const ServiceListContainer = () => {
   return (
     <div className="h-screen w-screen">
       <Header />
+      <ServiceForm />
       <ServiceList services={services} />
     </div>
   );
