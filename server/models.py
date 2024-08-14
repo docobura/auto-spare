@@ -1,24 +1,36 @@
-from datetime import datetime
+from datetime import datetime ,timedelta
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import MetaData
 from werkzeug.security import generate_password_hash, check_password_hash
+import pyotp
 
 metadata = MetaData()
 db = SQLAlchemy(metadata=metadata)
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), unique=True, nullable=False)
+    username = db.Column(db.String(100), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    role = db.Column(db.String(50), nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    role = db.Column(db.String(50), nullable=False, default='user')
+    is_two_factor_enabled = db.Column(db.Boolean, default=False)  
+    totp_secret = db.Column(db.String(16), nullable=True) 
+    two_fa_code = db.Column(db.String(6), nullable=False)  
+    two_fa_code_expiry = db.Column(db.DateTime, nullable=True)  
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    def set_2fa_code(self, code):
+        self.two_fa_code = code
+        self.two_fa_code_expiry = datetime.utcnow() + timedelta(minutes=10)  # Code valid for 10 minutes
+        db.session.commit()
+
+    def verify_2fa_code(self, code):
+        return self.two_fa_code == code and datetime.utcnow() < self.two_fa_code_expiry
 
     orders = db.relationship('Order', back_populates='user')
     cart_items = db.relationship('Cart', back_populates='user')

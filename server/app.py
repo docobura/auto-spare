@@ -13,6 +13,13 @@ from intasend import APIService
 import requests
 import os
 from mailersend import emails
+import pyotp
+import qrcode
+import base64
+from io import BytesIO
+from flask_mail import Mail, Message
+import random
+import string
 
 mailer = emails.NewEmail(os.getenv("MAILERSEND_API_KEY"))
 # Setting up basic logging
@@ -21,6 +28,15 @@ logging.basicConfig(level=logging.INFO)
 app = Flask(__name__)
 app.config.from_object('config.Config')
 app.config['SECRET_KEY'] = 'your_secret_key_here'
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USERNAME'] = 'nathanieljaden490@gmail.com'
+app.config['MAIL_PASSWORD'] = 'nxnl yqxe bafx ivkn'
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+app.config['MAIL_DEFAULT_SENDER'] = 'nathanieljaden490@gmail.com'
+
+mail = Mail(app)
 
 db.init_app(app)
 migrate = Migrate(app, db)
@@ -60,10 +76,6 @@ def confirm_appointment():
     user_email = data.get('email')
     appointment_details = data.get('appointment_details')
 
-    # Code to confirm the appointment in your database
-    # ...
-
-    # Send confirmation email
     send_confirmation_email(user_email, appointment_details)
 
     return jsonify({"message": "Appointment confirmed and email sent."})
@@ -76,64 +88,112 @@ def index():
 @app.route("/login", methods=["POST"])
 def login():
     data = request.json
-    email = data.get("email", None)
-    password = data.get("password", None)
+    email = data.get("email")
+    password = data.get("password")
     
     user = User.query.filter_by(email=email).first()
     
-    if user is None:
+    if user is None or not user.check_password(password):
         return jsonify({"msg": "Bad username or password"}), 401
     
-    if not user.check_password(password):
-        return jsonify({"msg": "Bad username or password"}), 401
-    
-    access_token = create_access_token(identity={"id": user.id})
-    return jsonify(access_token=access_token, userId=user.id, role=user.role)
+    if user.is_two_factor_enabled:
+        # Generate and send 2FA code
+        access_token = create_access_token(identity={"id": user.id, "2fa_required": True})
+        send_2fa_code()  
+        return jsonify({"msg": "2FA required", "access_token": access_token}), 200
 
+    access_token = create_access_token(identity={"id": user.id, "email": user.email, "2fa_required": False})
+    return jsonify(access_token=access_token, userId=user.id, role=user.role), 200
 
-
+# Signup route
 @app.route('/signup', methods=['POST'])
 def signup():
     data = request.get_json()
-
     if not data:
         return jsonify({"error": "No data provided"}), 400
 
     username = data.get('username')
     email = data.get('email')
     password = data.get('password')
-    role = data.get('role', 'user')  
+    role = data.get('role', 'user')
 
     if not username or not email or not password:
         return jsonify({"error": "Missing required fields"}), 400
 
-    # Check if user already exists
-    if User.query.filter_by(username=username).first():
-        return jsonify({"error": "Username already taken"}), 400
+    if User.query.filter_by(username=username).first() or User.query.filter_by(email=email).first():
+        return jsonify({"error": "Username or email already registered"}), 400
 
-    if User.query.filter_by(email=email).first():
-        return jsonify({"error": "Email already registered"}), 400
-
-    new_user = User(
-        username=username,
-        email=email,
-        role=role
-    )
+    new_user = User(username=username, email=email, role=role)
     new_user.set_password(password)
 
     try:
         db.session.add(new_user)
         db.session.commit()
-        user_dict = {
-            'id': new_user.id,
-            'username': new_user.username,
-            'email': new_user.email
-        }
+        user_dict = {'id': new_user.id, 'username': new_user.username, 'email': new_user.email}
         return jsonify(user_dict), 201
     except Exception as e:
         db.session.rollback()
         logging.error(f"Error creating user: {e}")
         return jsonify({"error": "An error occurred during signup"}), 500
+
+# Get current user email
+def get_current_user_email():
+    try:
+        current_user = get_jwt_identity()
+        print(f"Current JWT payload: {current_user}")  # Debugging line
+        if 'email' in current_user:
+            return current_user['email']
+        else:
+            raise ValueError("Email not found in JWT")
+    except Exception as e:
+        raise ValueError(f"Error retrieving email: {str(e)}")
+
+# Generate 2FA code
+def generate_2fa_code():
+    return ''.join(random.choices(string.digits, k=6))
+
+@app.route('/send-2fa-code', methods=['POST'])
+@jwt_required()
+def send_2fa_code():
+    try:
+        current_user = get_jwt_identity()
+        email = current_user['email']
+        
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        two_factor_code = generate_2fa_code()
+        user.set_2fa_code(two_factor_code)  
+
+        msg = Message("Your 2FA Code",
+                      sender=app.config['MAIL_DEFAULT_SENDER'],
+                      recipients=[email])
+        msg.body = f"Your 2FA code is {two_factor_code}"
+        
+        mail.send(msg)
+        return jsonify({"message": "2FA code sent successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/verify-2fa-code', methods=['POST'])
+def verify_2fa_code():
+    data = request.json
+    email = data.get('email')
+    code = data.get('code')
+    if not email or not code:
+        return jsonify({'error': 'Email and code are required'}), 400
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    if user.verify_2fa_code(code):
+        access_token = create_access_token(identity={"id": user.id, "email": user.email, "2fa_required": False})
+        return jsonify({'message': '2FA code verified successfully', 'access_token': access_token}), 200
+    else:
+        return jsonify({'error': 'Invalid 2FA code'}), 400
+
 
 @app.route("/all_users")
 def get_all_users():

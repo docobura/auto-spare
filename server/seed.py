@@ -8,9 +8,23 @@ def populate_data():
         db.create_all()
 
         # Create Users
-        user1 = User(username='johnb_doe', email='johnb_doe@example.com', role='Admin')
+
+            # Create the first user
+        user1 = User(
+                username='johnb_doe',
+                email='johnb_doe@example.com',
+                role='Admin',
+                is_two_factor_enabled=False,  # Default to False
+            )
         user1.set_password('password123')
-        user2 = User(username='janeg_doe', email='janeg_doe@example.com', role='mechanic')
+
+            # Create the second user
+        user2 = User(
+                username='janeg_doe',
+                email='janeg_doe@example.com',
+                role='mechanic',
+                is_two_factor_enabled=False,  # Default to False
+            )
         user2.set_password('password456')
 
         db.session.add(user1)
