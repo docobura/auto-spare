@@ -104,6 +104,11 @@ class Appointment(db.Model):
     service_id = db.Column(db.Integer, db.ForeignKey('service.id'), nullable=False)
     appointment_date = db.Column(db.DateTime, nullable=False)
     status = db.Column(db.String(50), nullable=False)
+    first_name = db.Column(db.String(50))  # Added field
+    last_name = db.Column(db.String(50))   # Added field
+    email = db.Column(db.String(100))      # Added field
+    phone_number = db.Column(db.String(20)) # Added field
+    note = db.Column(db.Text)              # Added field
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
     user = db.relationship('User', backref=db.backref('appointments', lazy=True))

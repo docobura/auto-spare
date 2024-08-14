@@ -733,16 +733,26 @@ def create_appointment():
             return jsonify({"error": "No data provided"}), 400
         
         # Validate the required fields
-        if 'user_id' not in data or 'service_id' not in data or 'appointment_date' not in data or 'status' not in data:
+        required_fields = ['user_id', 'service_id', 'appointment_date', 'status']
+        if not all(field in data for field in required_fields):
             return jsonify({"error": "Missing required fields"}), 400
         
-        appointment_date = datetime.strptime(data['appointment_date'], '%Y-%m-%d %H:%M:%S')  # Ensure correct datetime format
+        # Validate and parse the appointment_date
+        try:
+            appointment_date = datetime.strptime(data['appointment_date'], '%Y-%m-%d %H:%M:%S')
+        except ValueError:
+            return jsonify({"error": "Invalid date format. Use YYYY-MM-DD HH:MM:SS"}), 400
 
         new_appointment = Appointment(
             user_id=data['user_id'],
             service_id=data['service_id'],
             appointment_date=appointment_date,
-            status=data['status']
+            status=data['status'],
+            first_name=data.get('firstName'),
+            last_name=data.get('lastName'),
+            email=data.get('email'),
+            phone_number=data.get('phoneNumber'),
+            note=data.get('note')
         )
 
         db.session.add(new_appointment)
@@ -751,10 +761,10 @@ def create_appointment():
         return jsonify({"id": new_appointment.id}), 201
     
     except Exception as e:
-        print(f"Error: {e}") 
+        # Log the error for debugging
+        app.logger.error(f"Error creating appointment: {str(e)}")
+        
         return jsonify({"error": "An error occurred while creating the appointment"}), 500
-
-
 @app.route('/appointment/<int:id>', methods=['GET'])
 def get_appointment(id):
     appointment = Appointment.query.get_or_404(id)
