@@ -8,7 +8,7 @@ def populate_data():
         db.create_all()
 
         # Create Users
-        user1 = User(username='johnb_doe', email='johnb_doe@example.com', role='customer')
+        user1 = User(username='johnb_doe', email='johnb_doe@example.com', role='Admin')
         user1.set_password('password123')
         user2 = User(username='janeg_doe', email='janeg_doe@example.com', role='mechanic')
         user2.set_password('password456')

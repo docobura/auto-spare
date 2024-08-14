@@ -17,6 +17,7 @@ import CartPage from './pages/CartPage';
 import MyReviewsPage from './pages/MyReviewsPage';
 import MyOrdersPage from './pages/MyOrdersPage';
 import AdminRoute from './components/AdminRoute'; 
+import ServicingPage from './pages/AdminServiciesPage';
 
 const App = () => {
   return (
@@ -40,6 +41,8 @@ const App = () => {
           <Route path="/admin-dashboard" element={<AdminRoute element={<AdminDashboard />} />} />
           <Route path="/add-product" element={<AdminRoute element={<AddProductFormPage />} />} />
           <Route path="/orders" element={<AdminRoute element={<OrderListPage />} />} />
+          <Route path="/admin-servicing" element={<AdminRoute element={<ServicingPage />} />} />
+
         </Routes>
       </Router>
     </AuthProvider>

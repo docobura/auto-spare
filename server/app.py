@@ -8,6 +8,7 @@ import cloudinary.uploader
 import logging
 from sqlalchemy.orm import joinedload
 from intasend import APIService
+import requests
 
 # Setting up basic logging
 logging.basicConfig(level=logging.INFO)
@@ -568,7 +569,6 @@ def get_cart():
 
         items = Cart.query.filter_by(user_id=user_id).all()
         
-        # Prepare the response data
         items_list = [
             {
                 'part_id': item.part_id,
@@ -611,6 +611,9 @@ def delete_cart_item(part_id):
         return jsonify({'msg': 'Internal server error', 'error': str(e)}), 500
 
 
+
+
+
 publishable_key = "ISPubKey_live_e35bc477-8dd6-4f58-9cf9-44868bd77cd5"
 private_key = "ISSecretKey_live_1b9aa9e8-c3a9-4d07-99f2-56577a609ff5"
 
@@ -643,9 +646,48 @@ def create_checkout():
         print(f"Error during checkout: {e}")
         return jsonify({"error": str(e)}), 500
 
+import requests
+import uuid
+
+def generate_tx_ref():
+    return str(uuid.uuid4())
+
+def get_callback_url():
+    return 'https://http://localhost:5173/api/payment/callback'
+
+def get_redirect_url():
+    return 'https://http://localhost:5173/payment-complete'
+
 def generate_payment_url(phone_number, email, amount):
-    # Dummy function to generate payment URL
-    return 'http://example.com/payment'
+    # IntaSend API credentials
+    api_key = 'your_api_key_here'
+    base_url = 'https://api.intasend.com/v1/checkout/'
+
+    # Payment data
+    payload = {
+        'amount': amount,
+        'currency': 'KES',  
+        'payment_method': 'M-PESA', 
+        'phone_number': phone_number,
+        'email': email,
+        'tx_ref': generate_tx_ref(),
+        'callback_url': get_callback_url(),
+        'redirect_url': get_redirect_url()
+    }
+
+    headers = {
+        'Authorization': f'Bearer {api_key}',
+        'Content-Type': 'application/json',
+    }
+    
+    response = requests.post(base_url, json=payload, headers=headers)
+    
+    if response.status_code == 201:
+        return response.json().get('url')
+    else:
+        print('Error:', response.json())
+        return None
+
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import OrderList from '../components/Orders/OrderList';
-import { useAuth } from '../components/Auth/AuthContext'; // Adjust the import path as necessary
+import { useAuth } from '../components/Auth/AuthContext'; 
 
 const Header = () => {
   return (
@@ -32,7 +32,7 @@ const OrderListPage = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await fetch('http://localhost:5000/all-orders', {
+        const response = await fetch('http://localhost:5000/orders', {
           headers: {
             'Authorization': `Bearer ${authToken}`,
           },

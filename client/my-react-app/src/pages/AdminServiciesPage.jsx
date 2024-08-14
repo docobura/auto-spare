@@ -84,8 +84,9 @@ const ServicingPage = () => {
   };
 
   return (
-    <section className="flex flex-col items-center px-10 pt-14 pb-32 w-full text-black bg-gray-50">
+    <section className="h-screen flex flex-col items-center px-10 pt-14 pb-32 w-full text-black bg-gray-50">
       <div className="flex flex-col w-full max-w-[1080px]">
+        <Header />
         <h2 className="self-center text-3xl text-center">Our Services:</h2>
         <div className="flex flex-wrap gap-5 justify-between mt-9">
           {services.map((service, index) => (

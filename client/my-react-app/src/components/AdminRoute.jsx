@@ -10,13 +10,17 @@ const AdminRoute = ({ element, ...rest }) => {
   React.useEffect(() => {
     const checkAdmin = async () => {
       try {
+        console.log('Checking admin status...');
         const response = await fetch(`http://localhost:5000/users/${userId}`, {
           headers: { 'Authorization': `Bearer ${authToken}` }
         });
-
+  
         if (response.ok) {
           const user = await response.json();
-          setIsAdmin(user.role === 'admin');
+          console.log('User data:', user);
+          setIsAdmin(user.role === 'Admin');
+        } else {
+          console.error('Failed to fetch user data:', response.status);
         }
       } catch (error) {
         console.error('Error checking admin status:', error);
@@ -24,16 +28,17 @@ const AdminRoute = ({ element, ...rest }) => {
         setLoading(false);
       }
     };
-
+  
     if (userId && authToken) {
       checkAdmin();
     } else {
       setLoading(false);
     }
   }, [userId, authToken]);
+  
 
   if (loading) {
-    return <div>Loading...</div>; // Or a spinner/loading state
+    return <div>Loading...</div>; 
   }
 
   return isAdmin ? element : <Navigate to="/" />;
