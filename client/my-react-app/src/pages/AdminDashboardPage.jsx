@@ -1,5 +1,7 @@
+// AdminDashboard.jsx
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../components/Auth/AuthContext'; // Adjust the import path
 
 const Header = () => {
   return (
@@ -50,9 +52,15 @@ const Footer = () => {
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const handleItemClick = (path) => {
-    navigate(path);
+    if (path === '/logout') {
+      logout();
+      navigate('/login'); 
+    } else {
+      navigate(path);
+    }
   };
 
   return (
