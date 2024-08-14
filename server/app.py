@@ -1,5 +1,5 @@
 from flask import Flask, make_response, jsonify, request, abort
-from datetime import datetime
+from datetime import datetime , timedelta
 from flask import Flask, make_response, jsonify, request
 from flask_migrate import Migrate
 from flask_cors import CORS
@@ -85,25 +85,41 @@ def confirm_appointment():
 def index():
     return "<h1>This is an autospare app</h1>"
 
-@app.route("/login", methods=["POST"])
-def login():
-    data = request.json
-    email = data.get("email")
-    password = data.get("password")
-    
-    user = User.query.filter_by(email=email).first()
-    
-    if user is None or not user.check_password(password):
-        return jsonify({"msg": "Bad username or password"}), 401
-    
-    if user.is_two_factor_enabled:
-        # Generate and send 2FA code
-        access_token = create_access_token(identity={"id": user.id, "2fa_required": True})
-        send_2fa_code()  
-        return jsonify({"msg": "2FA required", "access_token": access_token}), 200
+def send_2fa_code_via_email(email, code):
+    msg = Message("Your 2FA Code",
+                  sender="nathanieljaden490@gmail.com",
+                  recipients=[email])
+    msg.body = f"Your 2FA code is {code}. It will expire in 5 minutes."
+    mail.send(msg)
 
-    access_token = create_access_token(identity={"id": user.id, "email": user.email, "2fa_required": False})
-    return jsonify(access_token=access_token, userId=user.id, role=user.role), 200
+
+
+
+@app.route("/login", methods=['POST'])
+def login():
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        password = data.get('password')
+
+        if not email or not password:
+            return jsonify({'error': 'Email and password are required'}), 400
+
+        user = User.query.filter_by(email=email).first()
+        if not user or not user.check_password(password):
+            return jsonify({'error': 'Invalid email or password'}), 401
+
+        if user.is_two_factor_enabled:
+            two_fa_code = user.generate_2fa_code()  # Call the method on the user instance
+            send_2fa_code_via_email(user.email, two_fa_code)  # Use the correct function
+            return jsonify({'message': '2FA code sent'}), 200
+
+        access_token = create_access_token(identity=user.id)
+        return jsonify({'access_token': access_token, 'userId': user.id}), 200
+
+    except Exception as e:
+        print(f"Exception: {e}")
+        return jsonify({'error': 'Internal server error'}), 500
 
 # Signup route
 @app.route('/signup', methods=['POST'])
@@ -136,11 +152,9 @@ def signup():
         logging.error(f"Error creating user: {e}")
         return jsonify({"error": "An error occurred during signup"}), 500
 
-# Get current user email
 def get_current_user_email():
     try:
         current_user = get_jwt_identity()
-        print(f"Current JWT payload: {current_user}")  # Debugging line
         if 'email' in current_user:
             return current_user['email']
         else:
@@ -148,7 +162,7 @@ def get_current_user_email():
     except Exception as e:
         raise ValueError(f"Error retrieving email: {str(e)}")
 
-# Generate 2FA code
+
 def generate_2fa_code():
     return ''.join(random.choices(string.digits, k=6))
 
@@ -156,43 +170,61 @@ def generate_2fa_code():
 @jwt_required()
 def send_2fa_code():
     try:
-        current_user = get_jwt_identity()
-        email = current_user['email']
-        
-        user = User.query.filter_by(email=email).first()
+        user_id = get_jwt_identity()
+        print(f"User ID from JWT: {user_id}")
+
+        user = User.query.get(user_id)
         if not user:
             return jsonify({"error": "User not found"}), 404
 
+        user_email = user.email
+        if not user_email:
+            return jsonify({"error": "No email found for user"}), 400
+
+        # Generate and store 2FA code
         two_factor_code = generate_2fa_code()
-        user.set_2fa_code(two_factor_code)  
+        user.two_factor_code = two_factor_code
+        user.code_expiry_time = datetime.utcnow() + timedelta(minutes=10)  # Set expiry time for 10 minutes
+
+        # Log the generated code to verify it
+        app.logger.info(f"Generated 2FA code: {two_factor_code} for user: {user_id}")
+
+        # Commit changes to the database
+        db.session.commit()
 
         msg = Message("Your 2FA Code",
-                      sender=app.config['MAIL_DEFAULT_SENDER'],
-                      recipients=[email])
+                      sender=app.config['MAIL_USERNAME'],
+                      recipients=[user_email])
         msg.body = f"Your 2FA code is {two_factor_code}"
-        
+
         mail.send(msg)
         return jsonify({"message": "2FA code sent successfully"}), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        app.logger.error(f"Error sending 2FA code: {e}")
+        return jsonify({"error": "Failed to send 2FA code"}), 500
+
 
 @app.route('/verify-2fa-code', methods=['POST'])
+@jwt_required()
 def verify_2fa_code():
     data = request.json
-    email = data.get('email')
     code = data.get('code')
-    if not email or not code:
-        return jsonify({'error': 'Email and code are required'}), 400
+    app.logger.info(f"Received 2FA code for verification: {code}")
 
-    user = User.query.filter_by(email=email).first()
-    if not user:
-        return jsonify({'error': 'User not found'}), 404
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
 
-    if user.verify_2fa_code(code):
-        access_token = create_access_token(identity={"id": user.id, "email": user.email, "2fa_required": False})
-        return jsonify({'message': '2FA code verified successfully', 'access_token': access_token}), 200
+    if user:
+        # Check if the code matches and is not expired
+        if user.two_factor_code == code and user.code_expiry_time > datetime.utcnow():
+            app.logger.info("2FA code verified successfully")
+            return jsonify({"message": "2FA code verified successfully"}), 200
+        else:
+            app.logger.info(f"Invalid or expired 2FA code: {code}")
+            return jsonify({"error": "Invalid or expired 2FA code"}), 400
     else:
-        return jsonify({'error': 'Invalid 2FA code'}), 400
+        app.logger.info("User not found")
+        return jsonify({"error": "User not found"}), 404
 
 
 @app.route("/all_users")
@@ -657,6 +689,7 @@ def add_to_cart():
         print(f"Error adding to cart: {e}")
         db.session.rollback()
         return jsonify({'msg': 'Internal server error', 'error': str(e)}), 500
+
 
 
 @app.route('/cart', methods=['GET'])

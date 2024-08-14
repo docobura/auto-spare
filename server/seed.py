@@ -1,5 +1,6 @@
 from app import app, db
 from models import User, Part, Review, Order, Service, Cart
+import pyotp
 
 def populate_data():
     with app.app_context():
@@ -9,22 +10,24 @@ def populate_data():
 
         # Create Users
 
-            # Create the first user
+        # Create the first user with 2FA disabled
         user1 = User(
-                username='johnb_doe',
-                email='johnb_doe@example.com',
-                role='Admin',
-                is_two_factor_enabled=False,  # Default to False
-            )
+            username='johnb_doe',
+            email='johnb_doe@example.com',
+            role='Admin',
+            is_two_factor_enabled=False  # Default to False
+        )
         user1.set_password('password123')
 
-            # Create the second user
+        # Create the second user with 2FA enabled
+        totp_secret = pyotp.random_base32()  # Generate a TOTP secret
         user2 = User(
-                username='janeg_doe',
-                email='janeg_doe@example.com',
-                role='mechanic',
-                is_two_factor_enabled=False,  # Default to False
-            )
+            username='janeg_doe',
+            email='janeg_doe@example.com',
+            role='mechanic',
+            is_two_factor_enabled=True,  # Enable 2FA
+            totp_secret=totp_secret  # Assign a TOTP secret
+        )
         user2.set_password('password456')
 
         db.session.add(user1)
@@ -64,8 +67,8 @@ def populate_data():
         db.session.commit()
 
         # Create Cart Items
-        cart_item1 = Cart(user_id=user1.id, part_id=part1.id, part_name=part1.name, quantity=2, price=part1.price, total_amount=part1.price * 2)  # Include price and total_amount
-        cart_item2 = Cart(user_id=user1.id, part_id=part2.id, part_name=part2.name, quantity=1, price=part2.price, total_amount=part2.price * 1)  # Include price and total_amount
+        cart_item1 = Cart(user_id=user1.id, part_id=part1.id, part_name=part1.name, quantity=2, price=part1.price, total_amount=part1.price * 2)
+        cart_item2 = Cart(user_id=user1.id, part_id=part2.id, part_name=part2.name, quantity=1, price=part2.price, total_amount=part2.price * 1)
 
         db.session.add(cart_item1)
         db.session.add(cart_item2)

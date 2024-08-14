@@ -1,4 +1,4 @@
-from datetime import datetime ,timedelta
+from datetime import datetime, timedelta
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import MetaData
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -13,10 +13,10 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     role = db.Column(db.String(50), nullable=False, default='user')
-    is_two_factor_enabled = db.Column(db.Boolean, default=False)  
-    totp_secret = db.Column(db.String(16), nullable=True) 
-    two_fa_code = db.Column(db.String(6), nullable=False)  
-    two_fa_code_expiry = db.Column(db.DateTime, nullable=True)  
+    is_two_factor_enabled = db.Column(db.Boolean, default=False)
+    totp_secret = db.Column(db.String(16), nullable=True)
+    two_factor_code = db.Column(db.String(6), nullable=True)
+    code_expiry_time = db.Column(db.DateTime, nullable=True)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -24,16 +24,36 @@ class User(db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    def set_2fa_code(self, code):
-        self.two_fa_code = code
-        self.two_fa_code_expiry = datetime.utcnow() + timedelta(minutes=10)  # Code valid for 10 minutes
+    def generate_2fa_code(self):
+        if not self.totp_secret:
+            raise ValueError("TOTP secret not set for user.")
+
+        totp = pyotp.TOTP(self.totp_secret)
+        code = totp.now()
+        code_expiry_time = datetime.utcnow() + timedelta(minutes=5)
+
+        self.two_factor_code = code
+        self.code_expiry_time = code_expiry_time
         db.session.commit()
 
-    def verify_2fa_code(self, code):
-        return self.two_fa_code == code and datetime.utcnow() < self.two_fa_code_expiry
+        return code
 
+    def verify_2fa_code(self, code):
+        if self.two_factor_code == code and datetime.utcnow() < self.code_expiry_time:
+            return True
+        return False
+    
     orders = db.relationship('Order', back_populates='user')
     cart_items = db.relationship('Cart', back_populates='user')
+
+class TwoFactorAuth(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    generated_code = db.Column(db.String(6), nullable=False)
+    generated_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    status = db.Column(db.String(50), nullable=False)  # e.g., "used", "expired"
+
+    user = db.relationship('User', backref=db.backref('two_factor_auth', lazy=True))
 
 class Part(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -45,7 +65,6 @@ class Part(db.Model):
     image_url = db.Column(db.String(500), nullable=True)
 
     cart_items = db.relationship('Cart', back_populates='part')
-
 
 class Review(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -78,8 +97,6 @@ class Order(db.Model):
             'cart_items': [item.to_dict() for item in self.cart_items]  # Assuming `Cart` model has a `to_dict` method
         }
 
-
-
 class Service(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)
@@ -92,7 +109,6 @@ class Service(db.Model):
 
     order = db.relationship('Order', backref=db.backref('services', lazy=True))
     mechanic = db.relationship('User', backref=db.backref('services', lazy=True))
-
 
 class Cart(db.Model):
     id = db.Column(db.Integer, primary_key=True)
