@@ -11,7 +11,10 @@ import logging
 from sqlalchemy.orm import joinedload
 from intasend import APIService
 import requests
+import os
+from mailersend import emails
 
+mailer = emails.NewEmail(os.getenv("MAILERSEND_API_KEY"))
 # Setting up basic logging
 logging.basicConfig(level=logging.INFO)
 
@@ -29,6 +32,42 @@ cloudinary.config(
     api_key='684544826659325',
     api_secret='aRE8edsHfXlFPKfMLI5bkp0LB18'
 )
+def send_confirmation_email(user_email, appointment_details):
+    email_data = {
+        "from": {
+            "email": "munenelornah@gmail.com", 
+            "name": "Auto Savy"
+        },
+        "to": [
+            {
+                "email": user_email,
+                "name": "User Name"
+            }
+        ],
+        "subject": "Appointment Confirmation",
+        "html": f"<h1>Your Appointment is Confirmed</h1><p>Details: {appointment_details}</p>",
+        "text": f"Your appointment is confirmed. Details: {appointment_details}"
+    }
+
+    try:
+        mailer.send(email_data)
+        print("Confirmation email sent successfully.")
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+@app.route('/confirm_appointment', methods=['POST'])
+def confirm_appointment():
+    data = request.json
+    user_email = data.get('email')
+    appointment_details = data.get('appointment_details')
+
+    # Code to confirm the appointment in your database
+    # ...
+
+    # Send confirmation email
+    send_confirmation_email(user_email, appointment_details)
+
+    return jsonify({"message": "Appointment confirmed and email sent."})
+
 
 @app.route("/")
 def index():
