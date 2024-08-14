@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import ServiceList from './ServiceList';
-import ServiceForm from './ServiceForm';
 import { useAuth } from '../Auth/AuthContext';
 import { Link } from 'react-router-dom';
 
@@ -32,7 +31,9 @@ const ServiceListContainer = () => {
     const fetchServices = async () => {
       try {
         const response = await fetch('http://127.0.0.1:5000/services', {
+          method: 'GET',
           headers: {
+            'Content-Type': 'application/json',
             'Authorization': `Bearer ${authToken}`, // Include token in request headers
           },
         });
@@ -49,7 +50,6 @@ const ServiceListContainer = () => {
   return (
     <>
       <Header />
-      <ServiceForm /> 
       <ServiceList services={services} />
     </>
   );

@@ -8,7 +8,7 @@ const ServiceItem = ({ id, label, imageUrl, description, price }) => {
 
   const handleBookService = async () => {
     try {
-      // Redirect to the appointment page with service parameters
+      
       navigate(`/service-appointment?id=${id}&label=${encodeURIComponent(label)}&imageUrl=${encodeURIComponent(imageUrl)}`);
     } catch (error) {
       console.error('Error navigating to appointment page:', error);
