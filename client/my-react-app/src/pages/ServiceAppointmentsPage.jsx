@@ -2,13 +2,20 @@ import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { useAuth } from '../components/Auth/AuthContext'; // Import the useAuth hook
+import { useAuth } from "../components/Auth/AuthContext"; // Import the useAuth hook
+import "./ServiceAppointmentPage.css"; // Import the CSS file
 
 const ServiceAppointmentPage = () => {
   const { authToken, userId } = useAuth(); // Destructure authToken and userId from useAuth
   const [appointmentDate, setAppointmentDate] = useState(null);
   const [showSummary, setShowSummary] = useState(false);
   const [bookingData, setBookingData] = useState(null);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [note, setNote] = useState("");
+  const [timeSlot, setTimeSlot] = useState("");
   const location = useLocation();
   const query = new URLSearchParams(location.search);
   const label = query.get("label");
@@ -24,9 +31,13 @@ const ServiceAppointmentPage = () => {
     setAppointmentDate(date);
   };
 
+  const handleTimeSlotChange = (slot) => {
+    setTimeSlot(slot);
+  };
+
   const handleBooking = async () => {
-    if (!appointmentDate) {
-      alert("Please select a date for your appointment.");
+    if (!appointmentDate || !timeSlot) {
+      alert("Please select a date and time slot for your appointment.");
       return;
     }
 
@@ -43,11 +54,15 @@ const ServiceAppointmentPage = () => {
     const bookingDetails = {
       user_id: userId,
       service_id: serviceId,
-      appointment_date: appointmentDate
-        .toISOString()
-        .slice(0, 19)
-        .replace("T", " "), // Correct format
+      appointment_date:
+        appointmentDate.toISOString().slice(0, 19).replace("T", " ") +
+        ` ${timeSlot}`,
       status: "Pending",
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      note,
     };
 
     console.log("Booking Details:", bookingDetails); // Log the details for debugging
@@ -57,7 +72,7 @@ const ServiceAppointmentPage = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${authToken}` // Include the auth token in the headers
+          Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
         },
         body: JSON.stringify(bookingDetails),
       });
@@ -82,34 +97,107 @@ const ServiceAppointmentPage = () => {
   };
 
   return (
-    <div className="w-screen h-screen bg-black text-white flex flex-col pt-[72px]">
-      <div className="flex flex-col items-center flex-grow">
-        <div className="flex flex-col items-center bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md mx-auto">
-          {!showSummary ? (
-            <>
-              <img
-                src={imageUrl}
-                alt={label}
-                className="object-contain w-full h-[200px] rounded-[20px]"
+    <div className="service-appointment-page">
+      <div className="appointment-container">
+        {!showSummary ? (
+          <>
+            <img src={imageUrl} alt={label} className="appointment-image" />
+            <h2 className="appointment-label">{label}</h2>
+            <div className="date-picker-container">
+              <DatePicker
+                selected={appointmentDate}
+                onChange={handleDateChange}
+                placeholderText="Select a date"
+                className="custom-date-picker"
               />
-              <h2 className="mt-4 text-3xl">{label}</h2>
-              <div className="mt-4">
-                <DatePicker
-                  selected={appointmentDate}
-                  onChange={handleDateChange}
-                  placeholderText="Select a date"
-                  className="p-2 border border-white rounded-md bg-gray-700 text-white"
-                />
+            </div>
+            <div className="time-slot-container">
+              <h3>Select a Time Slot</h3>
+              <div className="time-slot-grid">
+                {[
+                  "12:00 pm - 1:00 pm",
+                  "1:00 pm - 2:00 pm",
+                  "2:00 pm - 3:00 pm",
+                  "3:00 pm - 4:00 pm",
+                  "4:00 pm - 5:00 pm",
+                ].map((slot) => (
+                  <button
+                    key={slot}
+                    onClick={() => handleTimeSlotChange(slot)}
+                    className={`time-slot-button ${
+                      timeSlot === slot ? "selected-slot" : ""
+                    }`}
+                  >
+                    {slot}
+                  </button>
+                ))}
               </div>
-              <button
-                className="mt-4 bg-blue-500 text-white rounded-md hover:bg-green-600 p-2"
-                onClick={handleBooking}
-              >
-                Confirm Appointment
-              </button>
-            </>
-          ) : null}
-        </div>
+            </div>
+            <div className="basic-details-container">
+              <h3>Basic Details</h3>
+              <input
+                type="text"
+                placeholder="Enter your firstname"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                className="detail-input"
+              />
+              <input
+                type="text"
+                placeholder="Enter your lastname"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                className="detail-input"
+              />
+              <input
+                type="email"
+                placeholder="Enter your email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="detail-input"
+              />
+              <input
+                type="text"
+                placeholder="Enter your phone number"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                className="detail-input"
+              />
+              <textarea
+                placeholder="Enter note details"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                className="detail-textarea"
+              />
+            </div>
+            <button
+              className="confirm-appointment-button"
+              onClick={handleBooking}
+            >
+              Confirm Appointment
+            </button>
+          </>
+        ) : (
+          <div className="booking-confirmation">
+            <div className="success-icon">
+              {/* You can add an SVG or image for the success icon */}
+            </div>
+            <h2>Booking ID: #{bookingData.id}</h2>
+            <h3>Your Appointment Booked successfully!</h3>
+            <p>We have sent your booking information to your email address.</p>
+            <div className="appointment-details">
+              <p>Service: {bookingData.serviceName}</p>
+              <p>
+                Date & Time:{" "}
+                {new Date(bookingData.appointment_date).toLocaleString()}
+              </p>
+              <p>Customer Name: {`${firstName} ${lastName}`}</p>
+            </div>
+            <div className="add-to-calendar">
+              {/* Add to Calendar buttons go here */}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
