@@ -8,10 +8,12 @@ const LoginPage = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [requires2FA, setRequires2FA] = useState(false);
+    const [twoFaCode, setTwoFaCode] = useState('');
     const { login } = useAuth(); 
     const navigate = useNavigate();
 
-    const handleSubmit = async (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
         setError('');
 
@@ -27,8 +29,33 @@ const LoginPage = () => {
             }
 
             const data = await response.json();
-            // console.log("Token received:", data.access_token);
-            // console.log("UserId:", data.userId)
+            if (data['2fa_required']) {
+                setRequires2FA(true);
+            } else {
+                login(data.access_token, data.userId);  // Pass userId to login function
+                navigate('/'); 
+            }
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
+    const handleVerify2FA = async (e) => {
+        e.preventDefault();
+        setError('');
+
+        try {
+            const response = await fetch('http://localhost:5000/verify-2fa-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, code: twoFaCode }),
+            });
+
+            if (!response.ok) {
+                throw new Error('2FA verification failed');
+            }
+
+            const data = await response.json();
             login(data.access_token, data.userId);  // Pass userId to login function
             navigate('/'); 
         } catch (err) {
@@ -46,48 +73,62 @@ const LoginPage = () => {
                     className="object-cover absolute inset-0 w-full h-full opacity-50 z-0"
                 />
                 <div className="flex flex-col items-center px-8 py-12 bg-white bg-opacity-50 rounded-lg w-full max-w-md relative z-10">
-                    <form className="flex flex-col items-center w-full" onSubmit={handleSubmit}>
-                        <h1 className="text-4xl text-center mb-8">Login Form</h1>
-                        <input
-                            id="email"
-                            type="email"
-                            aria-label="Email Address"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="px-4 py-3 mt-4 text-xl rounded-lg bg-gray-200 text-black placeholder-black placeholder-opacity-50 w-full"
-                            placeholder="Email Address"
-                            required
-                        />
-                        <div className="relative w-full">
+                    {requires2FA ? (
+                        <form className="flex flex-col items-center w-full" onSubmit={handleVerify2FA}>
+                            <h1 className="text-4xl text-center mb-8">Verify 2FA Code</h1>
                             <input
-                                id="password"
-                                type={showPassword ? 'text' : 'password'}
-                                aria-label="Password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="px-4 py-3 mt-4 text-xl rounded-lg bg-gray-200 text-black placeholder-black placeholder-opacity-50 w-full pr-12"
-                                placeholder="Password"
+                                type="text"
+                                value={twoFaCode}
+                                onChange={(e) => setTwoFaCode(e.target.value)}
+                                placeholder="Enter 2FA code"
+                                className="px-4 py-3 mt-4 text-xl rounded-lg bg-gray-200 text-black placeholder-black placeholder-opacity-50 w-full"
                                 required
                             />
                             <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="py-3 mt-4 absolute inset-y-0 right-0 flex items-center px-4"
+                                type="submit"
+                                className="px-8 py-3 mt-6 text-xl text-white bg-gray-700 rounded-lg"
                             >
-                                {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
+                                Verify 2FA Code
                             </button>
-                        </div>
-                        <button
-                            type="submit"
-                            className="px-8 py-3 mt-6 text-xl text-white bg-gray-700 rounded-lg"
-                        >
-                            Login
-                        </button>
-                        {error && <p className="mt-4 text-red-600">{error}</p>}
-                        <div className="mt-6 text-lg text-blue-800">
-                            No Account? <a href="/signup" className="text-indigo-500">Sign Up Here</a>
-                        </div>
-                    </form>
+                            {error && <p className="mt-4 text-red-600">{error}</p>}
+                        </form>
+                    ) : (
+                        <form className="flex flex-col items-center w-full" onSubmit={handleLogin}>
+                            <h1 className="text-4xl text-center mb-8">Login Form</h1>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="Email"
+                                className="px-4 py-3 mt-4 text-xl rounded-lg bg-gray-200 text-black placeholder-black placeholder-opacity-50 w-full"
+                                required
+                            />
+                            <div className="relative w-full">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="Password"
+                                    className="px-4 py-3 mt-4 text-xl rounded-lg bg-gray-200 text-black placeholder-black placeholder-opacity-50 w-full"
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute inset-y-0 right-0 flex items-center pr-3"
+                                >
+                                    {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
+                                </button>
+                            </div>
+                            <button
+                                type="submit"
+                                className="px-8 py-3 mt-6 text-xl text-white bg-gray-700 rounded-lg"
+                            >
+                                Log In
+                            </button>
+                            {error && <p className="mt-4 text-red-600">{error}</p>}
+                        </form>
+                    )}
                 </div>
             </section>
         </div>

@@ -1,47 +1,45 @@
-// src/components/Auth/AuthContext.js
-
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [authToken, setAuthToken] = useState(
-    localStorage.getItem("authToken") || null
-  );
-  const [userId, setUserId] = useState(localStorage.getItem("userId") || null);
+  const [authToken, setAuthToken] = useState(localStorage.getItem('authToken') || null);
+  const [userId, setUserId] = useState(localStorage.getItem('userId') || null);
+  const [userRole, setUserRole] = useState(null);
 
-  const login = (token, userId) => {
+  useEffect(() => {
+    if (authToken && userId) {
+      fetch(`http://localhost:5000/users/${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
+      })
+      .then(response => response.json())
+      .then(data => setUserRole(data.role))
+      .catch(error => console.error('Error fetching user role:', error));
+    }
+  }, [authToken, userId]);
+
+  const login = (token, id) => {
     setAuthToken(token);
-    setUserId(userId);
-    localStorage.setItem("authToken", token);
-    localStorage.setItem("userId", userId);
+    setUserId(id);
+    localStorage.setItem('authToken', token);
+    localStorage.setItem('userId', id);
   };
 
   const logout = () => {
     setAuthToken(null);
     setUserId(null);
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("userId");
+    setUserRole(null);
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userId');
   };
 
-  useEffect(() => {
-    const existingToken = localStorage.getItem("authToken");
-    const existingUserId = localStorage.getItem("userId");
-    if (existingToken && existingUserId) {
-      setAuthToken(existingToken);
-      setUserId(existingUserId);
-    }
-  }, []);
-
   return (
-    <AuthContext.Provider
-      value={{ authToken, userId, login, logout, setAuthToken }}
-    >
+    <AuthContext.Provider value={{ authToken, userId, userRole, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+export const useAuth = () => useContext(AuthContext);
