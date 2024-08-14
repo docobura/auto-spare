@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import ServiceList from "./ServiceList";
-import ServiceForm from "./ServiceForm";
 import { useAuth } from "../Auth/AuthContext";
 import { Link } from "react-router-dom";
 
@@ -59,7 +58,6 @@ const ServiceListContainer = () => {
   return (
     <div className="h-screen w-screen">
       <Header />
-      <ServiceForm />
       <ServiceList services={services} />
     </div>
   );

@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { useAuth } from '../components/Auth/AuthContext'; // Import the useAuth hook
 
-const ServiceAppointmentPage = ({ serviceId, userId }) => {
-  console.log("User ID:", userId);
+const ServiceAppointmentPage = () => {
+  const { authToken, userId } = useAuth(); // Destructure authToken and userId from useAuth
   const [appointmentDate, setAppointmentDate] = useState(null);
   const [showSummary, setShowSummary] = useState(false);
   const [bookingData, setBookingData] = useState(null);
@@ -12,6 +13,12 @@ const ServiceAppointmentPage = ({ serviceId, userId }) => {
   const query = new URLSearchParams(location.search);
   const label = query.get("label");
   const imageUrl = query.get("imageUrl");
+  const serviceId = query.get("id"); // Get serviceId from the query string
+
+  useEffect(() => {
+    // Debug serviceId
+    console.log("Service ID:", serviceId);
+  }, [serviceId]);
 
   const handleDateChange = (date) => {
     setAppointmentDate(date);
@@ -28,6 +35,11 @@ const ServiceAppointmentPage = ({ serviceId, userId }) => {
       return;
     }
 
+    if (!serviceId) {
+      alert("Service ID is not available. Please select a service.");
+      return;
+    }
+
     const bookingDetails = {
       user_id: userId,
       service_id: serviceId,
@@ -38,11 +50,14 @@ const ServiceAppointmentPage = ({ serviceId, userId }) => {
       status: "Pending",
     };
 
+    console.log("Booking Details:", bookingDetails); // Log the details for debugging
+
     try {
       const response = await fetch("http://127.0.0.1:5000/appointment", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${authToken}` // Include the auth token in the headers
         },
         body: JSON.stringify(bookingDetails),
       });

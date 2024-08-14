@@ -685,6 +685,7 @@ def generate_payment_url(phone_number, email, amount):
     else:
         print('Error:', response.json())
         return None
+    
 @app.route('/appointment', methods=['POST'])
 def create_appointment():
     try:
@@ -711,7 +712,7 @@ def create_appointment():
         return jsonify({"id": new_appointment.id}), 201
     
     except Exception as e:
-        print(f"Error: {e}")  # Print the exception for debugging
+        print(f"Error: {e}") 
         return jsonify({"error": "An error occurred while creating the appointment"}), 500
 
 
