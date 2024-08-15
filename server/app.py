@@ -532,33 +532,6 @@ def create_review():
     db.session.commit()
     return jsonify({'id': review.id}), 201
 
-@app.route('/reviews/<int:user_id>', methods=['GET'])
-@jwt_required()
-def get_my_reviews(user_id):
-    token_user_id = get_jwt_identity()
-
-    print(f"Token user ID: {token_user_id}")
-
-    if not isinstance(token_user_id, int):
-        return jsonify({'error': 'Invalid token identity'}), 400
-
-    if token_user_id != user_id:
-        return jsonify({'error': 'Unauthorized access'}), 403
-
-    reviews = Review.query.filter_by(user_id=user_id).all()
-    reviews_list = [
-        {
-            'id': review.id,
-            'title': review.title,
-            'body': review.body,
-            'user_id': review.user_id,
-            'status': review.status,
-            'created_at': review.created_at
-        } for review in reviews
-    ]
-
-    return jsonify(reviews_list), 200
-
 @app.route('/orders', methods=['GET'])
 @jwt_required()
 def get_orders():
