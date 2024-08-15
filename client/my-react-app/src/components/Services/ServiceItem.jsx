@@ -26,7 +26,7 @@ const ServiceItem = ({ id, label, imageUrl, description, price }) => {
         <p className="mt-2 text-lg font-bold text-black">${price}</p> 
         <button 
         onClick={handleBookService} 
-        className="mt-4 block text-center bg-green-500 text-white py-2 rounded-md hover:bg-green-600"
+        className="mt-4 block text-center bg-blue-600 text-white py-2 rounded-md hover:bg-green-600"
       >
         Book Service
       </button>
