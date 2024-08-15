@@ -34,7 +34,7 @@ AutoSavy is a web application that features a React frontend built with Vite and
 
 ## Installation
 1. Fork and clone this repository
-    git clone git@github.com:docobura/auto-spare.git
+    [git clone git@github.com:docobura/auto-spare.git](https://github.com/docobura/auto-spare.git)
 
 ### Frontend
 
