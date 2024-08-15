@@ -323,9 +323,9 @@ const ShopPage = () => {
   });
 
   return (
-    <div className="w-screen h-screen bg-zinc-300 pt-16">
+    <div className="w-screen h-screen bg-zinc-300 pt-3">
       <Header />
-      <main className="flex flex-col px-8 py-4 bg-zinc-300 h-screen max-md:px-5 mt-16">
+      <main className="flex flex-col px-8 py-4 bg-zinc-300 max-md:px-5 mt-16">
         <header className="flex items-center justify-between py-4 px-6 bg-slate-600 rounded-full w-full max-md:pr-2">
           <h1 className="text-xl text-white">Shop</h1>
           <div className="flex items-center gap-3">

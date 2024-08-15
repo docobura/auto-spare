@@ -505,6 +505,13 @@ def get_reviews():
     ]
     return jsonify(reviews_list), 200
 
+@app.route('/my-reviews', methods=['GET'])
+@jwt_required()
+def get_my_reviews():
+    user_id = get_jwt_identity()  # Extract user ID from the token
+    reviews = Review.query.filter_by(user_id=user_id).all()
+    return jsonify([review.to_dict() for review in reviews])
+
 @app.route('/reviews', methods=['POST'])
 @jwt_required()  
 def create_review():
@@ -528,21 +535,16 @@ def create_review():
 @app.route('/reviews/<int:user_id>', methods=['GET'])
 @jwt_required()
 def get_my_reviews(user_id):
-    # Get the user ID from the JWT token
     token_user_id = get_jwt_identity()
 
-    # Debug print to see the value of token_user_id
     print(f"Token user ID: {token_user_id}")
 
-    # Ensure token_user_id is an integer
     if not isinstance(token_user_id, int):
         return jsonify({'error': 'Invalid token identity'}), 400
 
-    # Check if the token user ID matches the user ID in the request
     if token_user_id != user_id:
         return jsonify({'error': 'Unauthorized access'}), 403
 
-    # Query the reviews for the user
     reviews = Review.query.filter_by(user_id=user_id).all()
     reviews_list = [
         {

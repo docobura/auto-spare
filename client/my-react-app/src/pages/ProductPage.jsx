@@ -145,7 +145,6 @@ const ProductPage = () => {
   }, [id]);
 
   const handleAddToCart = () => {
-    // Implement your add to cart logic here
     console.log('Add to Cart clicked with quantity:', quantity);
   };
 
@@ -162,15 +161,13 @@ const ProductPage = () => {
       <Header />
       <div className="self-center mt-10 w-full max-w-[1200px] max-md:mt-6">
         <div className="flex flex-col lg:flex-row w-full gap-6">
-          {/* Product Image */}
           <div className="flex-shrink-0 lg:w-1/2">
             <img
-              src={product.imageUrl}
+              src={product.image_url}
               alt={product.name}
               className="w-full h-auto object-cover rounded-lg shadow-lg"
             />
           </div>
-          {/* Product Information and Add to Cart Button */}
           <div className="flex-1 lg:ml-6 lg:w-1/2">
             <h1 className="text-3xl text-white">{product.name}</h1>
             <p className="text-lg text-gray-300 mt-2">{product.description}</p>
