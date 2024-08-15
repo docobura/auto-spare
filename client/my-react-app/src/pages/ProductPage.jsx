@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../components/Auth/AuthContext';
 
+// Header Component
 const Header = () => {
   const { userRole, logout } = useAuth();
   const navigate = useNavigate();
@@ -87,40 +88,67 @@ const Header = () => {
   );
 };
 
+// QuantityInput Component
 const QuantityInput = ({ quantity, setQuantity }) => {
+  const handleInputChange = (event) => {
+    const newValue = event.target.value;
+    if (newValue === '' || (!isNaN(newValue) && Number(newValue) >= 1)) {
+      setQuantity(Number(newValue));
+    }
+  };
+
   const handleIncrease = () => {
     setQuantity(prevQuantity => prevQuantity + 1);
   };
 
   const handleDecrease = () => {
-    setQuantity(prevQuantity => (prevQuantity > 1 ? prevQuantity - 1 : 1));
+    setQuantity(prevQuantity => Math.max(1, prevQuantity - 1));
   };
 
   return (
-    <div className="flex items-center border border-gray-300 rounded-md overflow-hidden w-32">
+    <div className="flex items-center border border-gray-300 rounded-md w-32">
       <button
         onClick={handleDecrease}
-        className="w-8 h-8 flex items-center justify-center bg-gray-200 hover:bg-gray-300 border-r border-gray-300"
+        className="w-12 p-2 bg-gray-200 border-none rounded-l-md"
         aria-label="Decrease quantity"
       >
-        <svg className="w-3 h-3 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 13H5m14-6H5m14 12H5" />
-        </svg>
+        -
       </button>
-      <span className="px-3 py-1 text-lg flex-1 text-center">{quantity}</span>
+      <input
+        type="number"
+        value={quantity}
+        onChange={handleInputChange}
+        min="1"
+        className="w-16 p-2 bg-gray-200 border-none text-center"
+        aria-label="Custom quantity"
+      />
       <button
         onClick={handleIncrease}
-        className="w-8 h-8 flex items-center justify-center bg-gray-200 hover:bg-gray-300 border-l border-gray-300"
+        className="w-12 p-2 bg-gray-200 border-none rounded-r-md"
         aria-label="Increase quantity"
       >
-        <svg className="w-3 h-3 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 13H5m7-7v14m-7-7h14" />
-        </svg>
+        +
       </button>
     </div>
   );
 };
 
+// Footer Component
+const Footer = () => {
+  return (
+    <footer className="bg-gray-800 text-white py-6">
+      <div className="container mx-auto text-center">
+        <p className="text-sm">&copy; {new Date().getFullYear()} AutoSavy. All rights reserved.</p>
+        <div className="mt-2">
+          <a href="/privacy-policy" className="text-gray-400 hover:text-gray-300">Privacy Policy</a> |{' '}
+          <a href="/terms-of-service" className="text-gray-400 hover:text-gray-300">Terms of Service</a>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+// ProductPage Component
 const ProductPage = () => {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
@@ -132,7 +160,9 @@ const ProductPage = () => {
     const fetchProduct = async () => {
       try {
         const response = await fetch(`https://auto-spare.onrender.com/parts/${id}`);
-        if (!response.ok) throw new Error('Network response was not ok');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
         const data = await response.json();
         setProduct(data);
       } catch (error) {
@@ -149,55 +179,61 @@ const ProductPage = () => {
   };
 
   if (error) {
-    return <div>{error}</div>;
+    return <div className="text-red-500">{error}</div>;
   }
 
   if (!product) {
-    return <div>Loading...</div>;
+    return <div className="text-white">Loading...</div>;
   }
 
   return (
-    <main className="flex flex-col px-4 pt-14 pb-10 bg-black min-h-screen max-md:px-2 max-md:pb-6 w-screen">
+    <div className="flex flex-col min-h-screen">
       <Header />
-      <div className="self-center mt-10 w-full max-w-[1200px] max-md:mt-6">
-        <div className="flex flex-col lg:flex-row w-full gap-6">
-          <div className="flex-shrink-0 lg:w-1/2">
-            <img
-              src={product.image_url}
-              alt={product.name}
-              className="w-full h-auto object-cover rounded-lg shadow-lg"
-            />
-          </div>
-          <div className="flex-1 lg:ml-6 lg:w-1/2">
-            <h1 className="text-3xl text-white">{product.name}</h1>
-            <p className="text-lg text-gray-300 mt-2">{product.description}</p>
-            <div className="mt-4">
-              <span className="text-xl text-white">Price: ${product.price}</span>
+      <main className="flex flex-col flex-1 px-4 pt-14 pb-10 bg-black w-screen">
+        <div className="self-center mt-10 w-full max-w-[1200px] max-md:mt-6">
+          <div className="flex flex-col lg:flex-row w-full gap-6">
+            <div className="flex-shrink-0 lg:w-1/2">
+              <img
+                src={product.image_url || 'path/to/placeholder-image.jpg'} 
+                alt={product.name}
+                className="w-full h-auto object-cover rounded-lg shadow-lg"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = 'path/to/placeholder-image.jpg'; 
+                }}
+              />
             </div>
-            <QuantityInput quantity={quantity} setQuantity={setQuantity} />
-            <button
-              className="mt-4 px-8 py-3 text-lg text-white bg-blue-600 rounded-lg hover:bg-blue-700"
-              onClick={handleAddToCart}
-            >
-              Add to Cart
-            </button>
+            <div className="flex-1 lg:ml-6 lg:w-1/2">
+              <h1 className="text-3xl text-white">{product.name}</h1>
+              <p className="text-lg text-gray-300 mt-2">{product.description}</p>
+              <div className="mt-4">
+                <span className="text-xl text-white">Price: ${product.price}</span>
+              </div>
+              <QuantityInput quantity={quantity} setQuantity={setQuantity} />
+              <button
+                className="mt-4 px-8 py-3 text-lg text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                onClick={handleAddToCart}
+              >
+                Add to Cart
+              </button>
+            </div>
           </div>
+          <section className="mt-10">
+            <h2 className="text-2xl text-white">Reviews</h2>
+            <p className="mt-5 text-xl max-md:mt-4 max-md:max-w-full">
+              This product doesn't have reviews.
+            </p>
+            <button
+              className="px-8 py-4 mt-4 text-xl text-center bg-slate-600 rounded-[20px] max-md:px-4"
+              onClick={() => navigate('/reviews')}
+            >
+              Add a review
+            </button>
+          </section>
         </div>
-        {/* Review Section Below Product Details */}
-        <section className="mt-10">
-          <h2 className="text-2xl text-white">Reviews</h2>
-          <p className="mt-5 text-xl max-md:mt-4 max-md:max-w-full">
-            This product doesn't have reviews.
-          </p>
-          <button
-            className="px-8 py-4 mt-4 text-xl text-center bg-slate-600 rounded-[20px] max-md:px-4"
-            onClick={() => navigate('/reviews')}
-          >
-            Add a review
-          </button>
-        </section>
-      </div>
-    </main>
+      </main>
+      <Footer />
+    </div>
   );
 };
 
