@@ -9,11 +9,7 @@ const Header = () => {
 
   const handleDashboardClick = (e) => {
     e.preventDefault();
-    if (userRole === 'Admin') {
-      navigate('/admin-dashboard');
-    } else {
-      navigate('/dashboard');
-    }
+    navigate(userRole === 'Admin' ? '/admin-dashboard' : '/dashboard');
   };
 
   const handleLogout = () => {
@@ -30,7 +26,9 @@ const Header = () => {
         </Link>
         <div className="flex gap-4 text-sm items-center">
           <Link to="/shop" className="text-black hover:text-gray-700">Shop</Link>
-          <a href="#" onClick={handleDashboardClick} className="text-black hover:text-gray-700">Dashboard</a>
+          {userRole === 'Admin' && (
+            <a href="#" onClick={handleDashboardClick} className="text-black hover:text-gray-700">Dashboard</a>
+          )}
           <Link to="/servicing" className="text-black hover:text-gray-700">Servicing</Link>
           <Link to="/reviews" className="text-black hover:text-gray-700">Reviews</Link>
           <Link to="/cart" className="text-black hover:text-gray-700">Cart</Link>
