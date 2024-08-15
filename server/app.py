@@ -1,5 +1,5 @@
 from flask import Flask, make_response, jsonify, request, abort
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Flask, make_response, jsonify, request
 from flask_migrate import Migrate
 from flask_cors import CORS
@@ -12,14 +12,26 @@ from sqlalchemy.orm import joinedload
 import requests
 import os
 from cloudinary import uploader
+from mailersend import emails
+from flask_mail import Mail, Message
+import random
+import string
 
-
-# Setting up basic logging
+mailer = emails.NewEmail(os.getenv("MAILERSEND_API_KEY"))
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 app.config.from_object('config.Config')
 app.config['SECRET_KEY'] = 'your_secret_key_here'
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USERNAME'] = 'nathanieljaden490@gmail.com'
+app.config['MAIL_PASSWORD'] = 'nxnl yqxe bafx ivkn'
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+app.config['MAIL_DEFAULT_SENDER'] = 'nathanieljaden490@gmail.com'
+
+mail = Mail(app)
 
 db.init_app(app)
 migrate = Migrate(app, db)
@@ -32,37 +44,25 @@ cloudinary.config(
     api_secret='aRE8edsHfXlFPKfMLI5bkp0LB18'
 )
 def send_confirmation_email(user_email, appointment_details):
-    email_data = {
-        "from": {
-            "email": "munenelornah@gmail.com", 
-            "name": "Auto Savy"
-        },
-        "to": [
-            {
-                "email": user_email,
-                "name": "User Name"
-            }
-        ],
-        "subject": "Appointment Confirmation",
-        "html": f"<h1>Your Appointment is Confirmed</h1><p>Details: {appointment_details}</p>",
-        "text": f"Your appointment is confirmed. Details: {appointment_details}"
-    }
+    msg = Message(
+        subject="Appointment Confirmation",
+        recipients=[user_email],
+        html=f"<h1>Your Appointment is Confirmed</h1><p>Details: {appointment_details}</p>",
+        body=f"Your appointment is confirmed. Details: {appointment_details}"
+    )
 
     try:
-        mailer.send(email_data)
+        mail.send(msg)
         print("Confirmation email sent successfully.")
     except Exception as e:
         print(f"Failed to send email: {e}")
+
 @app.route('/confirm_appointment', methods=['POST'])
 def confirm_appointment():
     data = request.json
     user_email = data.get('email')
     appointment_details = data.get('appointment_details')
 
-    # Code to confirm the appointment in your database
-    # ...
-
-    # Send confirmation email
     send_confirmation_email(user_email, appointment_details)
 
     return jsonify({"message": "Appointment confirmed and email sent."})
@@ -72,68 +72,149 @@ def confirm_appointment():
 def index():
     return "<h1>This is an autospare app</h1>"
 
-@app.route("/login", methods=["POST"])
+def send_2fa_code_via_email(email, code):
+    msg = Message("Your 2FA Code",
+                  sender="nathanieljaden490@gmail.com",
+                  recipients=[email])
+    msg.body = f"Your 2FA code is {code}. It will expire in 5 minutes."
+    mail.send(msg)
+
+
+
+
+@app.route("/login", methods=['POST'])
 def login():
-    data = request.json
-    email = data.get("email", None)
-    password = data.get("password", None)
-    
-    user = User.query.filter_by(email=email).first()
-    
-    if user is None:
-        return jsonify({"msg": "Bad username or password"}), 401
-    
-    if not user.check_password(password):
-        return jsonify({"msg": "Bad username or password"}), 401
-    
-    access_token = create_access_token(identity={"id": user.id})
-    return jsonify(access_token=access_token, userId=user.id, role=user.role)
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        password = data.get('password')
+
+        if not email or not password:
+            return jsonify({'error': 'Email and password are required'}), 400
+
+        user = User.query.filter_by(email=email).first()
+        if not user or not user.check_password(password):
+            return jsonify({'error': 'Invalid email or password'}), 401
+
+        if user.is_two_factor_enabled:
+            two_fa_code = user.generate_2fa_code()  # Call the method on the user instance
+            send_2fa_code_via_email(user.email, two_fa_code)  # Use the correct function
+            return jsonify({'message': '2FA code sent'}), 200
+
+        access_token = create_access_token(identity=user.id)
+        return jsonify({'access_token': access_token, 'userId': user.id}), 200
+
+    except Exception as e:
+        print(f"Exception: {e}")
+        return jsonify({'error': 'Internal server error'}), 500
 
 
 
 @app.route('/signup', methods=['POST'])
 def signup():
     data = request.get_json()
-
     if not data:
         return jsonify({"error": "No data provided"}), 400
 
     username = data.get('username')
     email = data.get('email')
     password = data.get('password')
-    role = data.get('role', 'user')  
+    role = data.get('role', 'user')
 
     if not username or not email or not password:
         return jsonify({"error": "Missing required fields"}), 400
 
-    # Check if user already exists
-    if User.query.filter_by(username=username).first():
-        return jsonify({"error": "Username already taken"}), 400
+    if User.query.filter_by(username=username).first() or User.query.filter_by(email=email).first():
+        return jsonify({"error": "Username or email already registered"}), 400
 
-    if User.query.filter_by(email=email).first():
-        return jsonify({"error": "Email already registered"}), 400
-
-    new_user = User(
-        username=username,
-        email=email,
-        role=role
-    )
+    new_user = User(username=username, email=email, role=role)
     new_user.set_password(password)
 
     try:
         db.session.add(new_user)
         db.session.commit()
-        user_dict = {
-            'id': new_user.id,
-            'username': new_user.username,
-            'email': new_user.email
-        }
+        user_dict = {'id': new_user.id, 'username': new_user.username, 'email': new_user.email}
         return jsonify(user_dict), 201
     except Exception as e:
         db.session.rollback()
         logging.error(f"Error creating user: {e}")
         return jsonify({"error": "An error occurred during signup"}), 500
+    
+def get_current_user_email():
+    try:
+        current_user = get_jwt_identity()
+        if 'email' in current_user:
+            return current_user['email']
+        else:
+            raise ValueError("Email not found in JWT")
+    except Exception as e:
+        raise ValueError(f"Error retrieving email: {str(e)}")
 
+
+def generate_2fa_code():
+    return ''.join(random.choices(string.digits, k=6))
+
+@app.route('/send-2fa-code', methods=['POST'])
+@jwt_required()
+def send_2fa_code():
+    try:
+        user_id = get_jwt_identity()
+        print(f"User ID from JWT: {user_id}")
+
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        user_email = user.email
+        if not user_email:
+            return jsonify({"error": "No email found for user"}), 400
+
+        # Generate and store 2FA code
+        two_factor_code = generate_2fa_code()
+        user.two_factor_code = two_factor_code
+        user.code_expiry_time = datetime.utcnow() + timedelta(minutes=10)  # Set expiry time for 10 minutes
+
+        # Log the generated code to verify it
+        app.logger.info(f"Generated 2FA code: {two_factor_code} for user: {user_id}")
+
+        # Commit changes to the database
+        db.session.commit()
+
+        msg = Message("Your 2FA Code",
+                      sender=app.config['MAIL_USERNAME'],
+                      recipients=[user_email])
+        msg.body = f"Your 2FA code is {two_factor_code}"
+
+        mail.send(msg)
+        return jsonify({"message": "2FA code sent successfully"}), 200
+    except Exception as e:
+        app.logger.error(f"Error sending 2FA code: {e}")
+        return jsonify({"error": "Failed to send 2FA code"}), 500
+
+
+
+@app.route('/verify-2fa-code', methods=['POST'])
+@jwt_required()
+def verify_2fa_code():
+    data = request.json
+    code = data.get('code')
+    app.logger.info(f"Received 2FA code for verification: {code}")
+
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+
+    if user:
+        # Check if the code matches and is not expired
+        if user.two_factor_code == code and user.code_expiry_time > datetime.utcnow():
+            app.logger.info("2FA code verified successfully")
+            return jsonify({"message": "2FA code verified successfully"}), 200
+        else:
+            app.logger.info(f"Invalid or expired 2FA code: {code}")
+            return jsonify({"error": "Invalid or expired 2FA code"}), 400
+    else:
+        app.logger.info("User not found")
+        return jsonify({"error": "User not found"}), 404
+    
 @app.route("/all_users")
 def get_all_users():
     try:
