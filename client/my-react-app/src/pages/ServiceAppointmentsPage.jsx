@@ -148,6 +148,7 @@ const ServiceAppointmentPage = () => {
                 onChange={handleDateChange}
                 placeholderText="Select a date"
                 className="custom-date-picker"
+                minDate={new Date()} // Prevents selecting past dates
               />
             </div>
             <div className="time-slot-container">
