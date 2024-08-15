@@ -234,7 +234,7 @@ const ServiceAppointmentPage = () => {
               <p>Customer Name: {`${firstName} ${lastName}`}</p>
             </div>
             <div className="add-to-calendar">
-              {/* Add to Calendar buttons go here */}
+          
             </div>
           </div>
         )}
