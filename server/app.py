@@ -386,7 +386,6 @@ def get_first_user():
 @app.route('/parts', methods=['GET', 'POST'])
 def manage_parts():
     if request.method == 'POST':
-        # Parse form data
         name = request.form.get('name', '')
         description = request.form.get('description', '')
         price = float(request.form.get('price', 0.0))
@@ -394,13 +393,11 @@ def manage_parts():
         image_file = request.files.get('image')
 
         if image_file:
-            # Upload the image to Cloudinary
             result = cloudinary.uploader.upload(image_file, folder="your_folder_name")
             image_url = result.get('secure_url', '')
         else:
             image_url = ''
 
-        # Create a new part instance with the provided data
         part = Part(
             name=name,
             description=description,
@@ -512,7 +509,7 @@ def get_reviews():
 @jwt_required()  
 def create_review():
     data = request.get_json()
-    user_id = get_jwt_identity().get('id')  
+    user_id = get_jwt_identity()
 
     if not user_id:
         return jsonify({'error': 'User ID not found in token'}), 401
@@ -531,10 +528,21 @@ def create_review():
 @app.route('/reviews/<int:user_id>', methods=['GET'])
 @jwt_required()
 def get_my_reviews(user_id):
-    token_user_id = get_jwt_identity().get('id')
+    # Get the user ID from the JWT token
+    token_user_id = get_jwt_identity()
+
+    # Debug print to see the value of token_user_id
+    print(f"Token user ID: {token_user_id}")
+
+    # Ensure token_user_id is an integer
+    if not isinstance(token_user_id, int):
+        return jsonify({'error': 'Invalid token identity'}), 400
+
+    # Check if the token user ID matches the user ID in the request
     if token_user_id != user_id:
         return jsonify({'error': 'Unauthorized access'}), 403
 
+    # Query the reviews for the user
     reviews = Review.query.filter_by(user_id=user_id).all()
     reviews_list = [
         {
@@ -546,12 +554,13 @@ def get_my_reviews(user_id):
             'created_at': review.created_at
         } for review in reviews
     ]
+
     return jsonify(reviews_list), 200
 
 @app.route('/orders', methods=['GET'])
 @jwt_required()
 def get_orders():
-    user_id = get_jwt_identity().get('id')
+    user_id = get_jwt_identity()
     if user_id is None:
         return jsonify({"msg": "User ID is missing"}), 400
 
@@ -715,14 +724,11 @@ def add_to_cart():
         db.session.rollback()
         return jsonify({'msg': 'Internal server error', 'error': str(e)}), 500
 
-
-
-
 @app.route('/cart', methods=['GET'])
 @jwt_required()
 def get_cart():
     try:
-        user_id = get_jwt_identity()  # Directly use the integer returned by get_jwt_identity()
+        user_id = get_jwt_identity()  
 
         items = Cart.query.filter_by(user_id=user_id).all()
         
@@ -769,7 +775,7 @@ def delete_cart_item(part_id):
 @app.route('/appointment', methods=['POST'])
 def create_appointment():
     try:
-        data = request.get_json()  # Use get_json() to parse JSON
+        data = request.get_json()  
         if not data:
             return jsonify({"error": "No data provided"}), 400
         
@@ -806,6 +812,7 @@ def create_appointment():
         app.logger.error(f"Error creating appointment: {str(e)}")
         
         return jsonify({"error": "An error occurred while creating the appointment"}), 500
+    
 @app.route('/appointment/<int:id>', methods=['GET'])
 def get_appointment(id):
     appointment = Appointment.query.get_or_404(id)
@@ -835,9 +842,6 @@ def get_all_appointments():
         results.append(appointment_data)
     
     return jsonify(results), 200
-
-
-
 
 @app.route('/appointment/<int:id>', methods=['PUT'])
 def update_appointment(id):
