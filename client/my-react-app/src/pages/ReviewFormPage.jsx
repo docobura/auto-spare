@@ -3,6 +3,7 @@ import ReviewForm from '../components/Reviews/ReviewForm';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../components/Auth/AuthContext';
 
+// Header Component
 const Header = () => {
   const { userRole, logout } = useAuth();
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ const Header = () => {
   };
 
   return (
-    <header className="fixed top-4 left-0 right-0 z-50 py-2 px-4 w-[90%] mx-auto bg-white rounded-lg shadow-md"> 
+    <header className="fixed top-4 left-0 right-0 z-50 py-2 px-4 w-[90%] mx-auto bg-white rounded-lg shadow-md">
       <nav className="flex justify-between items-center">
         <Link to="/" className="flex items-center gap-2 text-lg text-black">
           <div className="flex shrink-0 w-10 h-10 bg-black rounded-full" />
@@ -35,7 +36,6 @@ const Header = () => {
           <div className="px-4">
             <Link to="/shop" className="text-black hover:text-gray-700">Shop</Link>
           </div>
-          
           <div className="px-4">
             <Link to="/servicing" className="text-black hover:text-gray-700">Servicing</Link>
           </div>
@@ -51,20 +51,20 @@ const Header = () => {
             </div>
           ) : (
             <div className="relative px-0">
-              <button 
-                onClick={toggleDropdown} 
+              <button
+                onClick={toggleDropdown}
                 className="text-black hover:text-gray-700 bg-transparent border-none cursor-pointer">
                 myAutoSavy
               </button>
               {isDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-20">
-                  <Link 
-                    to="/my-orders" 
+                  <Link
+                    to="/my-orders"
                     className="block px-4 py-2 text-sm text-black hover:bg-gray-200">
                     My Orders
                   </Link>
-                  <Link 
-                    to="/my-reviews" 
+                  <Link
+                    to="/my-reviews"
                     className="block px-4 py-2 text-sm text-black hover:bg-gray-200">
                     My Reviews
                   </Link>
@@ -74,8 +74,8 @@ const Header = () => {
           )}
           <div className="px-3">
             {userRole ? (
-              <button 
-                onClick={handleLogout} 
+              <button
+                onClick={handleLogout}
                 className="text-black hover:text-gray-700 bg-transparent border-none cursor-pointer">
                 Logout
               </button>
@@ -88,6 +88,8 @@ const Header = () => {
     </header>
   );
 };
+
+// ReviewCard Component
 const ReviewCard = ({ title, body }) => (
   <article className="flex flex-col w-full max-w-md mx-auto p-4 bg-zinc-300 rounded-lg shadow-md overflow-hidden">
     <div className="flex flex-col items-start p-4 text-black">
@@ -97,6 +99,7 @@ const ReviewCard = ({ title, body }) => (
   </article>
 );
 
+// ReviewInstructions Component
 const ReviewInstructions = () => {
   return (
     <section className="flex flex-col w-11/12 max-w-lg mx-auto text-sm text-white mt-8 mb-8">
@@ -108,6 +111,22 @@ const ReviewInstructions = () => {
   );
 };
 
+// Footer Component
+const Footer = () => {
+  return (
+    <footer className="bg-gray-800 text-white py-6 mt-auto">
+      <div className="container mx-auto text-center">
+        <p className="text-sm">&copy; {new Date().getFullYear()} AutoSavy. All rights reserved.</p>
+        <div className="mt-2">
+          <a href="/privacy-policy" className="text-gray-400 hover:text-gray-300">Privacy Policy</a> |{' '}
+          <a href="/terms-of-service" className="text-gray-400 hover:text-gray-300">Terms of Service</a>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+// ReviewPage Component
 const ReviewPage = () => {
   const [reviews, setReviews] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -145,32 +164,35 @@ const ReviewPage = () => {
   };
 
   return (
-    <main className="flex overflow-hidden flex-col px-8 pt-12 pb-20 bg-black max-md:px-3 max-md:pb-16 w-screen">
+    <main className="flex flex-col min-h-screen px-8 pt-12 pb-20 bg-black max-md:px-3 max-md:pb-16 w-screen">
       <Header />
-      <h1 className="text-3xl font-bold text-white text-center mt-20 mb-8 max-md:text-2xl max-md:mt-12">
-  Leave a review!
-</h1>
-      <div className="self-center mt-8 w-full max-w-[1400px] max-md:mt-8 max-md:max-w-full">
-        <div className="flex gap-4 max-md:flex-col">
-          <ReviewForm
-            initialValues={{ title: '', body: '' }}
-            onSubmit={handleSubmit}
-          />
-          <ReviewInstructions />
-        </div>
-      </div>
-      <section className="self-end mt-14 w-full max-w-[1619px] max-md:mt-10 max-md:mr-1.5 max-md:max-w-full">
-        <h2 className="text-2xl font-bold text-white mb-4">Other Reviews</h2>
-        <div className="flex gap-5 max-md:flex-col">
-          {sortedReviews.map(review => (
-            <ReviewCard
-              key={review.id}
-              title={review.title}
-              body={review.body}
+      <div className="flex-grow">
+        <h1 className="text-3xl font-bold text-white text-center mt-20 mb-8 max-md:text-2xl max-md:mt-12">
+          Leave a review!
+        </h1>
+        <div className="self-center mt-8 w-full max-w-[1400px] max-md:mt-8 max-md:max-w-full">
+          <div className="flex gap-4 max-md:flex-col">
+            <ReviewForm
+              initialValues={{ title: '', body: '' }}
+              onSubmit={handleSubmit}
             />
-          ))}
+            <ReviewInstructions />
+          </div>
         </div>
-      </section>
+        <section className="self-end mt-14 w-full max-w-[1619px] max-md:mt-10 max-md:mr-1.5 max-md:max-w-full">
+          <h2 className="text-2xl font-bold text-white mb-4">Other Reviews</h2>
+          <div className="flex gap-5 max-md:flex-col">
+            {sortedReviews.map(review => (
+              <ReviewCard
+                key={review.id}
+                title={review.title}
+                body={review.body}
+              />
+            ))}
+          </div>
+        </section>
+      </div>
+      <Footer />
     </main>
   );
 };
