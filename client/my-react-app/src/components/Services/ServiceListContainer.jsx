@@ -118,7 +118,7 @@ const ServiceListContainer = () => {
       <section className="bg-cover bg-center h-[60vh]" style={{ backgroundImage: "url('https://media.istockphoto.com/id/1347150429/photo/professional-mechanic-working-on-the-engine-of-the-car-in-the-garage.jpg?s=612x612&w=0&k=20&c=5zlDGgLNNaWsp_jq_L1AsGT85wrzpdl3kVH-75S-zTU=')" }}>
         <div className="bg-black bg-opacity-50 h-full flex items-center justify-center">
           <div className="text-center text-white pt-20">
-            <h2 className="text-4xl font-bold">Comprehensive Car Check-Ups</h2>
+            <h2 className="text-3xl font-bold">Comprehensive Car Check-Ups</h2>
             <p className="mt-4 max-w-2xl mx-auto font-medium text-2xl">
               Our free 30-point car inspection service is the perfect way to make sure your car is in tip-top shape.
             </p>
@@ -128,10 +128,11 @@ const ServiceListContainer = () => {
           </div>
         </div>
       </section>
-      
-      <div className="h-[50vh]">
+      <section className="services-section bg-gray-400">
+      <div className="">
         <ServiceList services={services} />
       </div>
+      </section>
       <section className="bg-cover bg-center h-[50vh]">
   <div className="bg-black bg-opacity-50 h-full flex items-center justify-center">
     <div className="text-center text-white pt-20">
