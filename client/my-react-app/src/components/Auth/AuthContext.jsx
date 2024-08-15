@@ -9,7 +9,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (authToken && userId) {
-      fetch(`http://localhost:5000/users/${userId}`, {
+      fetch(`https://auto-spare.onrender.com/users/${userId}`, {
         headers: {
           'Authorization': `Bearer ${authToken}`
         }
