@@ -54,7 +54,7 @@ const AddProductsForm = () => {
     validationSchema,
     onSubmit: async (values) => {
       try {
-        const response = await fetch('http://localhost:5000/parts', {
+        const response = await fetch('https://auto-spare.onrender.com/parts', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

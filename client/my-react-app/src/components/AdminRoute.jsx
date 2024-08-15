@@ -11,7 +11,7 @@ const AdminRoute = ({ element, ...rest }) => {
     const checkAdmin = async () => {
       try {
         console.log('Checking admin status...');
-        const response = await fetch(`http://localhost:5000/users/${userId}`, {
+        const response = await fetch(`https://auto-spare.onrender.com/users/${userId}`, {
           headers: { 'Authorization': `Bearer ${authToken}` }
         });
   

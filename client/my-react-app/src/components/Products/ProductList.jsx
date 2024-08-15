@@ -9,7 +9,7 @@ const ProductList = () => {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const response = await fetch('http://localhost:5000/parts', {
+                const response = await fetch('https://auto-spare.onrender.com/parts', {
                     headers: {
                         'Authorization': `Bearer ${authToken}`, // Include token in request headers
                     },

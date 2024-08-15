@@ -19,7 +19,7 @@ const LoginPage = () => {
 
         try {
             // Validate login credentials
-            const response = await fetch('http://localhost:5000/login', {
+            const response = await fetch('https://auto-spare.onrender.com/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
@@ -37,7 +37,7 @@ const LoginPage = () => {
             localStorage.setItem('userId', userId);
 
             // Send 2FA code
-            const send2FAResponse = await fetch('http://localhost:5000/send-2fa-code', {
+            const send2FAResponse = await fetch('https://auto-spare.onrender.com/send-2fa-code', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -66,7 +66,7 @@ const LoginPage = () => {
             const accessToken = localStorage.getItem('accessToken'); // Retrieve token from localStorage
             const userId = localStorage.getItem('userId'); // Retrieve userId from localStorage
     
-            const response = await fetch('http://localhost:5000/verify-2fa-code', {
+            const response = await fetch('https://auto-spare.onrender.com/verify-2fa-code', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

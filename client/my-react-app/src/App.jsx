@@ -11,7 +11,6 @@ import LoginFormPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import ServiceListContainer from './components/Services/ServiceListContainer';
 import ServiceAppointmentPage from './pages/ServiceAppointmentsPage'; 
-import UserDashboardPage from './pages/UserDashboardPage';
 import AdminDashboard from './pages/AdminDashboardPage';
 import CartPage from './pages/CartPage';
 import MyReviewsPage from './pages/MyReviewsPage';
@@ -34,9 +33,7 @@ const App = () => {
           <Route path="/login" element={<LoginFormPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/servicing" element={<ServiceListContainer />} />
-          <Route path="/service-appointment" element={<ServiceAppointmentPage />} />
-          <Route path="/dashboard" element={<UserDashboardPage />} />
-          
+          <Route path="/service-appointment" element={<ServiceAppointmentPage />} />          
           {/* Admin-only routes */}
           <Route path="/admin-dashboard" element={<AdminRoute element={<AdminDashboard />} />} />
           <Route path="/add-product" element={<AdminRoute element={<AddProductFormPage />} />} />

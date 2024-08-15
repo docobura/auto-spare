@@ -10,7 +10,7 @@ const ProductItem = ({ id, name, price, image }) => {
 
   const handleAddToCart = async () => {
     try {
-      const response = await fetch(`/api/cart`, {
+      const response = await fetch(`https://auto-spare.onrender.com/cart`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

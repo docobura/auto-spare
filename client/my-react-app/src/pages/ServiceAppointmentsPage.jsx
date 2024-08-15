@@ -82,7 +82,7 @@ const ServiceAppointmentPage = () => {
     console.log("Booking Details:", bookingDetails);
 
     try {
-      const response = await fetch("http://127.0.0.1:5000/appointment", {
+      const response = await fetch("https://auto-spare.onrender.com/appointment", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -103,7 +103,7 @@ const ServiceAppointmentPage = () => {
         // Call the Flask backend to send confirmation email
         const appointmentDetails = `Service: ${label}, Date & Time: ${appointment_date}`;
         const emailResponse = await fetch(
-          "http://127.0.0.1:5000/confirm_appointment",
+          "https://auto-spare.onrender.com/confirm_appointment",
           {
             method: "POST",
             headers: {

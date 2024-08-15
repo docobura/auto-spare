@@ -12,7 +12,7 @@ const ProductDetails = () => {
     useEffect(() => {
         const fetchProduct = async () => {
             try {
-                const response = await fetch(`http://localhost:5000/parts/${id}`, {
+                const response = await fetch(`https://auto-spare.onrender.com/parts/${id}`, {
                     headers: {
                         'Authorization': `Bearer ${authToken}`, // Include token in request headers
                     },
@@ -52,7 +52,7 @@ const ProductDetails = () => {
         }
     
         try {
-            const response = await fetch('http://localhost:5000/cart', {
+            const response = await fetch('https://auto-spare.onrender.com/cart', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -72,7 +72,7 @@ const ProductDetails = () => {
             }
     
             // Update stock in parts
-            const updateResponse = await fetch(`http://localhost:5000/parts/${id}`, {
+            const updateResponse = await fetch(`https://auto-spare.onrender.com/parts/${id}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
