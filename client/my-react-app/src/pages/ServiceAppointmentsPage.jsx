@@ -148,6 +148,7 @@ const ServiceAppointmentPage = () => {
                 onChange={handleDateChange}
                 placeholderText="Select a date"
                 className="custom-date-picker"
+                minDate={new Date()} // Prevents selecting past dates
               />
             </div>
             <div className="time-slot-container">
@@ -233,7 +234,7 @@ const ServiceAppointmentPage = () => {
               <p>Customer Name: {`${firstName} ${lastName}`}</p>
             </div>
             <div className="add-to-calendar">
-              {/* Add to Calendar buttons go here */}
+          
             </div>
           </div>
         )}
