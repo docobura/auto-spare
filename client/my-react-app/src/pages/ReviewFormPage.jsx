@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ReviewForm from '../components/Reviews/ReviewForm';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../components/Auth/AuthContext';
-import reviewPageBg from '../assets/reviewpagebg.jpg'; // Import the background image
+import reviewPageBg from '../assets/reviewpagebg.jpg';
 
 // Header Component
 const Header = () => {
@@ -167,7 +167,7 @@ const ReviewPage = () => {
   return (
     <main
       className="relative flex flex-col min-h-screen overflow-hidden px-8 pt-12 pb-20 bg-cover bg-center w-screen"
-      style={{ backgroundImage: `url(${reviewPageBg})` }} // Apply the background image
+      style={{ backgroundImage: `url(${reviewPageBg})` }} 
     >
       <div className="absolute inset-0 bg-black opacity-85"></div> 
       <Header />
