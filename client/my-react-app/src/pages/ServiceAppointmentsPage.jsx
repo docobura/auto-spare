@@ -2,11 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { useAuth } from "../components/Auth/AuthContext"; // Import the useAuth hook
-import "./ServiceAppointmentPage.css"; // Import the CSS file
+import { useAuth } from "../components/Auth/AuthContext";
+import "./ServiceAppointmentPage.css";
 
 const ServiceAppointmentPage = () => {
-  const { authToken, userId } = useAuth(); // Destructure authToken and userId from useAuth
+  const { authToken, userId } = useAuth();
   const [appointmentDate, setAppointmentDate] = useState(null);
   const [showSummary, setShowSummary] = useState(false);
   const [bookingData, setBookingData] = useState(null);
@@ -20,10 +20,9 @@ const ServiceAppointmentPage = () => {
   const query = new URLSearchParams(location.search);
   const label = query.get("label");
   const imageUrl = query.get("imageUrl");
-  const serviceId = query.get("id"); // Get serviceId from the query string
+  const serviceId = query.get("id");
 
   useEffect(() => {
-    // Debug serviceId
     console.log("Service ID:", serviceId);
   }, [serviceId]);
 
@@ -51,12 +50,14 @@ const ServiceAppointmentPage = () => {
       return;
     }
 
+    const formattedDateTime = `${appointmentDate
+      .toISOString()
+      .slice(0, 10)} ${timeSlot}:00`;
+
     const bookingDetails = {
       user_id: userId,
       service_id: serviceId,
-      appointment_date:
-        appointmentDate.toISOString().slice(0, 19).replace("T", " ") +
-        ` ${timeSlot}`,
+      appointment_date: formattedDateTime,
       status: "Pending",
       firstName,
       lastName,
@@ -65,14 +66,14 @@ const ServiceAppointmentPage = () => {
       note,
     };
 
-    console.log("Booking Details:", bookingDetails); // Log the details for debugging
+    console.log("Booking Details:", bookingDetails);
 
     try {
       const response = await fetch("http://127.0.0.1:5000/appointment", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`, // Include the auth token in the headers
+          Authorization: `Bearer ${authToken}`,
         },
         body: JSON.stringify(bookingDetails),
       });

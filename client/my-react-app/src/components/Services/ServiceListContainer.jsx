@@ -22,7 +22,7 @@ const Header = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 py-3 pr-6 pl-6 w-screen bg-white rounded-full shadow-md">
+    <header className="fixed top-0 left-0 right-0 z-50 py-3 pr-6 pl-6 w-screen bg-gray-100 rounded-full shadow-md">
       <nav className="flex justify-between items-center">
         <Link to="/" className="flex items-center gap-2 text-lg text-black">
           <div className="flex shrink-0 w-10 h-10 bg-black rounded-full" />
@@ -72,9 +72,11 @@ const ServiceListContainer = () => {
   }, [authToken]);
 
   return (
-    <div className="h-screen w-screen">
+    <div className="h-screen w-screen bg-gray-400"> 
       <Header />
-      <ServiceList services={services} />
+      <div className="pt-20">
+        <ServiceList services={services} />
+      </div>
     </div>
   );
 };

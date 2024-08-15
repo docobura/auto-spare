@@ -524,7 +524,7 @@ def get_reviews():
 @jwt_required()  
 def create_review():
     data = request.get_json()
-    user_id = get_jwt_identity().get('id')  
+    user_id = get_jwt_identity() 
 
     if not user_id:
         return jsonify({'error': 'User ID not found in token'}), 401
@@ -543,7 +543,7 @@ def create_review():
 @app.route('/reviews/<int:user_id>', methods=['GET'])
 @jwt_required()
 def get_my_reviews(user_id):
-    token_user_id = get_jwt_identity().get('id')
+    token_user_id = get_jwt_identity()
     if token_user_id != user_id:
         return jsonify({'error': 'Unauthorized access'}), 403
 
@@ -563,7 +563,7 @@ def get_my_reviews(user_id):
 @app.route('/orders', methods=['GET'])
 @jwt_required()
 def get_orders():
-    user_id = get_jwt_identity().get('id')
+    user_id = get_jwt_identity()    
     if user_id is None:
         return jsonify({"msg": "User ID is missing"}), 400
 
@@ -647,8 +647,7 @@ def get_services():
 @jwt_required()
 def add_to_cart():
     try:
-        user_identity = get_jwt_identity()
-        user_id = user_identity['id']
+        user_id = get_jwt_identity()  # Directly use the integer returned by get_jwt_identity()
 
         data = request.get_json()
         part_id = data.get('part_id')
@@ -668,7 +667,7 @@ def add_to_cart():
             part_name=part_name,
             quantity=quantity,
             price=price,
-            total_amount=total_amount,  # Include total_amount in Cart instance
+            total_amount=total_amount,
             image_url=image_url
         )
 
@@ -681,7 +680,7 @@ def add_to_cart():
             'part_name': part_name,
             'quantity': quantity,
             'price': price,
-            'total_amount': total_amount,  # Include total_amount in response
+            'total_amount': total_amount,
             'image_url': image_url
         }}), 201
 
@@ -692,14 +691,12 @@ def add_to_cart():
 
 
 
+
 @app.route('/cart', methods=['GET'])
 @jwt_required()
 def get_cart():
     try:
-        current_user = get_jwt_identity()
-        user_id = current_user.get('id')
-        if not user_id:
-            raise ValueError("User ID not found in JWT token")
+        user_id = get_jwt_identity()  # Directly use the integer returned by get_jwt_identity()
 
         items = Cart.query.filter_by(user_id=user_id).all()
         
@@ -723,15 +720,13 @@ def get_cart():
         app.logger.error(f'Error fetching cart items: {e}')
         return jsonify({'msg': 'Internal server error', 'error': str(e)}), 500
 
+
 @app.route('/cart/<int:part_id>', methods=['DELETE'])
 @jwt_required()
 def delete_cart_item(part_id):
     try:
-        current_user_id = get_jwt_identity()
-        if isinstance(current_user_id, dict):
-            current_user_id = current_user_id.get('id')
-
-        cart_item = Cart.query.filter_by(part_id=part_id, user_id=current_user_id).first()
+        user_id = get_jwt_identity()  
+        cart_item = Cart.query.filter_by(part_id=part_id, user_id=user_id).first()
 
         if cart_item:
             db.session.delete(cart_item)
@@ -743,6 +738,7 @@ def delete_cart_item(part_id):
     except Exception as e:
         app.logger.error(f'Error deleting cart item: {e}')
         return jsonify({'msg': 'Internal server error', 'error': str(e)}), 500
+
 
 publishable_key = "ISPubKey_live_e35bc477-8dd6-4f58-9cf9-44868bd77cd5"
 private_key = "ISSecretKey_live_1b9aa9e8-c3a9-4d07-99f2-56577a609ff5"

@@ -18,7 +18,7 @@ const Header = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login'); 
+    navigate('/login');
   };
 
   return (
@@ -48,7 +48,6 @@ const Header = () => {
     </header>
   );
 };
-
 
 const Hero = () => {
   return (

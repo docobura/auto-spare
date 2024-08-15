@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../components/Auth/AuthContext'; 
+import { useAuth } from '../components/Auth/AuthContext';
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 
 const LoginPage = () => {
@@ -18,7 +18,8 @@ const LoginPage = () => {
         setError('');
 
         try {
-            const response = await fetch('http://localhost:5000/login', { 
+            // Validate login credentials
+            const response = await fetch('http://localhost:5000/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
@@ -29,37 +30,67 @@ const LoginPage = () => {
             }
 
             const data = await response.json();
-            if (data['2fa_required']) {
-                setRequires2FA(true);
-            } else {
-                login(data.access_token, data.userId);  // Pass userId to login function
-                navigate('/'); 
+            const { access_token, userId } = data; 
+
+            // Store token and user ID in localStorage
+            localStorage.setItem('accessToken', access_token);
+            localStorage.setItem('userId', userId);
+
+            // Send 2FA code
+            const send2FAResponse = await fetch('http://localhost:5000/send-2fa-code', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${access_token}`
+                },
+                body: JSON.stringify({ email }),
+            });
+
+            if (!send2FAResponse.ok) {
+                throw new Error('Failed to send 2FA code');
             }
+
+            setRequires2FA(true);
+
         } catch (err) {
             setError(err.message);
         }
     };
 
     const handleVerify2FA = async (e) => {
-        e.preventDefault();
-        setError('');
-
+        e.preventDefault(); // Prevent default form submission behavior
+    
         try {
+            console.log('Sending 2FA code for verification:', twoFaCode);
+    
+            const accessToken = localStorage.getItem('accessToken'); // Retrieve token from localStorage
+            const userId = localStorage.getItem('userId'); // Retrieve userId from localStorage
+    
             const response = await fetch('http://localhost:5000/verify-2fa-code', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, code: twoFaCode }),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`, // Use token from localStorage
+                },
+                body: JSON.stringify({ code: twoFaCode }), // Send the code
             });
-
-            if (!response.ok) {
-                throw new Error('2FA verification failed');
-            }
-
+    
             const data = await response.json();
-            login(data.access_token, data.userId);  // Pass userId to login function
-            navigate('/'); 
-        } catch (err) {
-            setError(err.message);
+            if (response.ok) {
+                console.log('2FA code verified successfully:', data);
+    
+                // Log the user in by calling the login function from AuthContext
+                login(accessToken, userId);
+    
+                // Redirect the user to the home page after successful login
+                navigate('/');
+            } else {
+                console.error('Error data:', data);
+                throw new Error(data.error || 'Failed to verify 2FA code');
+            }
+        } catch (error) {
+            console.error('Verification error:', error.message);
+            setError(error.message); // Display error message
         }
     };
 
@@ -68,7 +99,7 @@ const LoginPage = () => {
             <section className="flex relative flex-col justify-center items-center w-full h-full px-5 py-28 bg-black text-white">
                 <img
                     loading="lazy"
-                    src="https://cdn.builder.io/api/v1/image/assets/TEMP/5989fe7fa671e74b167f383cfa36762776166d1ba25588db8fe91f6510542c5b?apiKey=27e637b116ae45f88d28619cf8e9c221&&apiKey=27e637b116ae45f88d28619cf8e9c221"
+                    src="https://cdn.builder.io/api/v1/image/assets/TEMP/5989fe7fa671e74b167f383cfa36762776166d1ba25588db8fe91f6510542c5b?apiKey=27e637b116ae45f88d28619cf8e9c221"
                     alt="Background"
                     className="object-cover absolute inset-0 w-full h-full opacity-50 z-0"
                 />
@@ -115,7 +146,7 @@ const LoginPage = () => {
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute inset-y-0 right-0 flex items-center pr-3"
+                                    className="py-3 mt-4 absolute inset-y-0 right-0 flex items-center px-4"
                                 >
                                     {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
                                 </button>
@@ -127,6 +158,9 @@ const LoginPage = () => {
                                 Log In
                             </button>
                             {error && <p className="mt-4 text-red-600">{error}</p>}
+                            <div className="mt-6 text-lg text-blue-800">
+                            Don't have an account? <a href="/signup" className="text-indigo-500">Sign up Here</a>
+                            </div>
                         </form>
                     )}
                 </div>

@@ -110,7 +110,7 @@ const MyOrdersPage = () => {
     };
 
     return (
-        <div className="w-screen flex flex-col bg-gray-300">
+        <div className="w-screen h-screen flex flex-col bg-gray-300">
             <Header />
             <main className="flex-grow flex flex-col items-center justify-center px-4 py-8">
                 <h1 className="text-3xl font-bold mb-8 text-black">My Orders</h1>
