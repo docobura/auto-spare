@@ -50,14 +50,27 @@ const ServiceAppointmentPage = () => {
       return;
     }
 
-    const formattedDateTime = `${appointmentDate
-      .toISOString()
-      .slice(0, 10)} ${timeSlot}:00`;
+    // Extract the date part
+    const datePart = appointmentDate.toISOString().slice(0, 10);
+
+    // Extract the time part and convert to 24-hour format
+    const timePart = timeSlot.split(" - ")[0];
+    const [time, modifier] = timePart.split(" ");
+    let [hours, minutes] = time.split(":");
+    if (modifier === "pm" && hours !== "12") {
+      hours = parseInt(hours, 10) + 12;
+    } else if (modifier === "am" && hours === "12") {
+      hours = "00";
+    }
+    const formattedTime = `${hours}:${minutes}:00`;
+
+    // Combine date and time to form the correct datetime format
+    const appointment_date = `${datePart} ${formattedTime}`;
 
     const bookingDetails = {
       user_id: userId,
       service_id: serviceId,
-      appointment_date: formattedDateTime,
+      appointment_date,
       status: "Pending",
       firstName,
       lastName,
@@ -86,9 +99,34 @@ const ServiceAppointmentPage = () => {
           serviceName: label,
         });
         setShowSummary(true);
+
+        // Call the Flask backend to send confirmation email
+        const appointmentDetails = `Service: ${label}, Date & Time: ${appointment_date}`;
+        const emailResponse = await fetch(
+          "http://127.0.0.1:5000/confirm_appointment",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${authToken}`,
+            },
+            body: JSON.stringify({
+              email,
+              appointment_details: appointmentDetails,
+            }),
+          }
+        );
+
+        if (emailResponse.ok) {
+          const emailResult = await emailResponse.json();
+          console.log("Email sent:", emailResult);
+        } else {
+          const emailError = await emailResponse.json();
+          console.error("Email Error:", emailError);
+        }
       } else {
         const error = await response.json();
-        console.error("Response Error: ", error);
+        console.error("Booking Error: ", error);
         alert("Failed to book the appointment. Error: " + error.error);
       }
     } catch (error) {
