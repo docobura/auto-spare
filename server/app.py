@@ -9,14 +9,9 @@ import cloudinary
 import cloudinary.uploader
 import logging
 from sqlalchemy.orm import joinedload
-from intasend import APIService
 import requests
 import os
 from mailersend import emails
-import pyotp
-import qrcode
-import base64
-from io import BytesIO
 from flask_mail import Mail, Message
 import random
 import string

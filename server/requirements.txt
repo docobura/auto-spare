@@ -1,4 +1,3 @@
-python-dotenv
 pyotp
 qrcode
 flask-mail
