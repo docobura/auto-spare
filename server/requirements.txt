@@ -1,0 +1,11 @@
+python-dotenv
+pyotp
+qrcode
+flask-mail
+flask
+flask-migrate
+flask-cors
+flask-jwt-extended
+cloudinary
+mailersend
+requests
