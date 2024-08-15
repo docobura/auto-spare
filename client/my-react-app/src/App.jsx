@@ -17,6 +17,8 @@ import MyReviewsPage from './pages/MyReviewsPage';
 import MyOrdersPage from './pages/MyOrdersPage';
 import AdminRoute from './components/AdminRoute'; 
 import ServicingPage from './pages/AdminServiciesPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import TermsOfServicePage from './pages/TermsOfServicePage';
 
 const App = () => {
   return (
@@ -33,7 +35,9 @@ const App = () => {
           <Route path="/login" element={<LoginFormPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/servicing" element={<ServiceListContainer />} />
-          <Route path="/service-appointment" element={<ServiceAppointmentPage />} />          
+          <Route path="/service-appointment" element={<ServiceAppointmentPage />} />  
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+<Route path="/terms-of-service" element={<TermsOfServicePage />} />        
           {/* Admin-only routes */}
           <Route path="/admin-dashboard" element={<AdminRoute element={<AdminDashboard />} />} />
           <Route path="/add-product" element={<AdminRoute element={<AddProductFormPage />} />} />
