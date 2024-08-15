@@ -1,48 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Link , useNavigate} from 'react-router-dom';
-import ProductItem from '../components/Products/ProductItem'; 
-import { useAuth } from '../components/Auth/AuthContext';
+import { Link } from 'react-router-dom';
+import ProductItem from '../components/Products/ProductItem'; // Assuming ProductList is in components folder
 
 const Header = () => {
-  const { userRole, logout } = useAuth();
-  const navigate = useNavigate();
-
-  const handleDashboardClick = (e) => {
-    e.preventDefault();
-    if (userRole === 'Admin') {
-      navigate('/admin-dashboard');
-    } else {
-      navigate('/dashboard');
-    }
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 py-3 pr-6 pl-6 w-screen bg-white rounded-full shadow-md">
+    <header className="fixed top-0 left-0 right-0 z-50 py-3 pr-6 pl-6 w-screen bg-white bg-opacity-50 rounded-full">
       <nav className="flex justify-between items-center">
         <Link to="/" className="flex items-center gap-2 text-lg text-black">
           <div className="flex shrink-0 w-10 h-10 bg-black rounded-full" />
           <div className="text-lg">AutoSavy</div>
         </Link>
-        <div className="flex gap-4 text-sm items-center">
+        <div className="flex gap-4 text-sm">
           <Link to="/shop" className="text-black hover:text-gray-700">Shop</Link>
-          <a href="#" onClick={handleDashboardClick} className="text-black hover:text-gray-700">Dashboard</a>
+          <Link to="/dashboard" className="text-black hover:text-gray-700">Dashboard</Link>
           <Link to="/servicing" className="text-black hover:text-gray-700">Servicing</Link>
           <Link to="/reviews" className="text-black hover:text-gray-700">Reviews</Link>
           <Link to="/cart" className="text-black hover:text-gray-700">Cart</Link>
-          {userRole ? (
-            <button 
-              onClick={handleLogout} 
-              className="text-black hover:text-gray-700 bg-transparent border-none cursor-pointer">
-              Logout
-            </button>
-          ) : (
-            <Link to="/login" className="text-black hover:text-gray-700">Login</Link>
-          )}
         </div>
       </nav>
     </header>
@@ -51,7 +24,7 @@ const Header = () => {
 
 const Hero = () => {
   return (
-    <section className="flex flex-col items-center px-10 pt-32 pb-60 w-screen bg-black h-screen">
+    <section className="flex flex-col items-center px-10 pt-32 pb-60 w-screen bg-black h-screen mb- 20">
       <h1 className="mt-10 text-5xl text-center text-orange-300">Drive Smart</h1>
       <p className="mt-5 text-xl text-center text-white">Your one-stop shop for car parts and servicing needs!</p>
       <Link to="/shop">
@@ -101,7 +74,7 @@ const Updates = () => {
   ];
 
   return (
-    <section className="flex flex-col px-10 pt-3 pb-24 w-screen bg-white h-screen">
+    <section className="flex flex-col px-10 pt-3 pb-24 w-screen bg-white h-screen mb-5">
       <h2 className="self-center text-3xl text-center text-black">Latest Updates & Offers</h2>
       <div className="mt-10 flex gap-5 justify-center">
         {updateData.map((update, index) => (
@@ -116,41 +89,49 @@ const Updates = () => {
 
 const PartsExplorer = () => {
   const [products, setProducts] = useState([]);
+  const [displayedProducts, setDisplayedProducts] = useState([]);
 
   useEffect(() => {
     // Fetch products from the API
     fetch('http://localhost:5000/parts')
       .then(response => response.json())
-      .then(data => setProducts(data))
+      .then(data => {
+        setProducts(data);
+        setDisplayedProducts(data.slice(0, 3)); // Display only the first three products
+      })
       .catch(error => console.error('Error fetching products:', error));
   }, []);
 
   return (
-    <section className="flex flex-col items-center px-10 pt-14 pb-32 w-screen text-black bg-gray-50 h-screen">
+    <section className="flex flex-col items-center px-10 pt-14 pb-32 w-screen text-black bg-gray-50 h-screen mb-5">
       <div className="flex flex-col w-full max-w-[1080px]">
         <h2 className="self-center text-3xl font-bold mb-6">Explore Our Parts</h2>
         <div className="flex flex-wrap gap-6 justify-center">
-          {products.length > 0 ? (
-            products.map(product => (
+          {displayedProducts.length > 0 ? (
+            displayedProducts.map(product => (
               <ProductItem
                 key={product.id}
                 id={product.id}
                 name={product.name}
                 price={product.price}
-                image={product.image}
+                image={product.image_url}
               />
             ))
           ) : (
             <p className="text-lg text-center">No products available.</p>
           )}
         </div>
+        <Link to="/shop">
+          <button className="mt-6 px-6 py-3 text-lg text-white bg-blue-500 rounded-lg">View More</button>
+        </Link>
       </div>
     </section>
   );
 };
 
+
 const OrangeSection = () => (
-  <header className="flex flex-col items-center px-10 pt-14 pb-36 w-screen bg-red-200 h-screen">
+  <header className="flex flex-col items-center px-10 pt-14 pb-36 w-screen bg-red-200 h-screen mb-20">
     <div className="flex flex-col items-center w-full max-w-[994px]">
       <h1 className="text-3xl text-center text-black">Rev Up Your Ride Today!</h1>
       <h2 className="self-stretch mt-10 text-3xl text-center text-black">Get the best parts and services for your car.</h2>
@@ -178,7 +159,7 @@ const ReviewSection = () => {
   }, []);
 
   return (
-    <section className="flex flex-col px-10 pt-14 pb-32 w-screen text-center text-black bg-white h-screen">
+    <section className="flex flex-col px-10 pt-14 pb-32 w-screen text-center text-black bg-white h-screen mb-20">
       <div className="flex flex-col w-full">
         <h2 className="text-3xl font-bold mb-8">Previous Reviews</h2>
         <div className="flex flex-wrap gap-6 justify-center">
@@ -246,7 +227,7 @@ const FAQs = () => {
   ];
 
   return (
-    <section className="flex flex-col px-10 pt-10 pb-36 w-screen text-center text-black bg-gray-50">
+    <section className="flex flex-col px-10 pt-10 pb-36 w-screen text-center text-black bg-gray-50 mb-5">
       <h2 className="text-3xl mb-8">FAQ</h2>
       {faqData.map((item, index) => (
         <FAQItem key={index} question={item.question} answer={item.answer} />
@@ -257,7 +238,7 @@ const FAQs = () => {
 
 
 const ContactUs = () => (
-  <section className="flex flex-col items-center px-10 pt-10 pb-32 w-screen text-center text-black bg-gray-50 h-screen">
+  <section className="flex flex-col items-center px-10 pt-10 pb-32 w-screen text-center text-black bg-gray-50 h-screen mb-5">
     <div className="flex flex-col w-full max-w-[1080px]">
       <h2 className="self-center text-3xl">Contact Us</h2>
       <div className="flex flex-wrap gap-5 justify-between mt-9">

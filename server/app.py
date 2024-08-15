@@ -1,5 +1,5 @@
 from flask import Flask, make_response, jsonify, request, abort
-from datetime import datetime , timedelta
+from datetime import datetime
 from flask import Flask, make_response, jsonify, request
 from flask_migrate import Migrate
 from flask_cors import CORS
@@ -11,27 +11,15 @@ import logging
 from sqlalchemy.orm import joinedload
 import requests
 import os
-from mailersend import emails
-from flask_mail import Mail, Message
-import random
-import string
+from cloudinary import uploader
 
-mailer = emails.NewEmail(os.getenv("MAILERSEND_API_KEY"))
+
 # Setting up basic logging
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 app.config.from_object('config.Config')
 app.config['SECRET_KEY'] = 'your_secret_key_here'
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USERNAME'] = 'nathanieljaden490@gmail.com'
-app.config['MAIL_PASSWORD'] = 'nxnl yqxe bafx ivkn'
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USE_SSL'] = False
-app.config['MAIL_DEFAULT_SENDER'] = 'nathanieljaden490@gmail.com'
-
-mail = Mail(app)
 
 db.init_app(app)
 migrate = Migrate(app, db)
@@ -44,26 +32,37 @@ cloudinary.config(
     api_secret='aRE8edsHfXlFPKfMLI5bkp0LB18'
 )
 def send_confirmation_email(user_email, appointment_details):
-    msg = Message(
-        subject="Appointment Confirmation",
-        recipients=[user_email],
-        html=f"<h1>Your Appointment is Confirmed</h1><p>Details: {appointment_details}</p>",
-        body=f"Your appointment is confirmed. Details: {appointment_details}"
-    )
-    
+    email_data = {
+        "from": {
+            "email": "munenelornah@gmail.com", 
+            "name": "Auto Savy"
+        },
+        "to": [
+            {
+                "email": user_email,
+                "name": "User Name"
+            }
+        ],
+        "subject": "Appointment Confirmation",
+        "html": f"<h1>Your Appointment is Confirmed</h1><p>Details: {appointment_details}</p>",
+        "text": f"Your appointment is confirmed. Details: {appointment_details}"
+    }
+
     try:
-        mail.send(msg)
+        mailer.send(email_data)
         print("Confirmation email sent successfully.")
     except Exception as e:
         print(f"Failed to send email: {e}")
-
-        
 @app.route('/confirm_appointment', methods=['POST'])
 def confirm_appointment():
     data = request.json
     user_email = data.get('email')
     appointment_details = data.get('appointment_details')
 
+    # Code to confirm the appointment in your database
+    # ...
+
+    # Send confirmation email
     send_confirmation_email(user_email, appointment_details)
 
     return jsonify({"message": "Appointment confirmed and email sent."})
@@ -73,147 +72,67 @@ def confirm_appointment():
 def index():
     return "<h1>This is an autospare app</h1>"
 
-def send_2fa_code_via_email(email, code):
-    msg = Message("Your 2FA Code",
-                  sender="nathanieljaden490@gmail.com",
-                  recipients=[email])
-    msg.body = f"Your 2FA code is {code}. It will expire in 5 minutes."
-    mail.send(msg)
-
-
-
-
-@app.route("/login", methods=['POST'])
+@app.route("/login", methods=["POST"])
 def login():
-    try:
-        data = request.get_json()
-        email = data.get('email')
-        password = data.get('password')
+    data = request.json
+    email = data.get("email", None)
+    password = data.get("password", None)
+    
+    user = User.query.filter_by(email=email).first()
+    
+    if user is None:
+        return jsonify({"msg": "Bad username or password"}), 401
+    
+    if not user.check_password(password):
+        return jsonify({"msg": "Bad username or password"}), 401
+    
+    access_token = create_access_token(identity={"id": user.id})
+    return jsonify(access_token=access_token, userId=user.id, role=user.role)
 
-        if not email or not password:
-            return jsonify({'error': 'Email and password are required'}), 400
 
-        user = User.query.filter_by(email=email).first()
-        if not user or not user.check_password(password):
-            return jsonify({'error': 'Invalid email or password'}), 401
 
-        if user.is_two_factor_enabled:
-            two_fa_code = user.generate_2fa_code()  # Call the method on the user instance
-            send_2fa_code_via_email(user.email, two_fa_code)  # Use the correct function
-            return jsonify({'message': '2FA code sent'}), 200
-
-        access_token = create_access_token(identity=user.id)
-        return jsonify({'access_token': access_token, 'userId': user.id}), 200
-
-    except Exception as e:
-        print(f"Exception: {e}")
-        return jsonify({'error': 'Internal server error'}), 500
-
-# Signup route
 @app.route('/signup', methods=['POST'])
 def signup():
     data = request.get_json()
+
     if not data:
         return jsonify({"error": "No data provided"}), 400
 
     username = data.get('username')
     email = data.get('email')
     password = data.get('password')
-    role = data.get('role', 'user')
+    role = data.get('role', 'user')  
 
     if not username or not email or not password:
         return jsonify({"error": "Missing required fields"}), 400
 
-    if User.query.filter_by(username=username).first() or User.query.filter_by(email=email).first():
-        return jsonify({"error": "Username or email already registered"}), 400
+    # Check if user already exists
+    if User.query.filter_by(username=username).first():
+        return jsonify({"error": "Username already taken"}), 400
 
-    new_user = User(username=username, email=email, role=role)
+    if User.query.filter_by(email=email).first():
+        return jsonify({"error": "Email already registered"}), 400
+
+    new_user = User(
+        username=username,
+        email=email,
+        role=role
+    )
     new_user.set_password(password)
 
     try:
         db.session.add(new_user)
         db.session.commit()
-        user_dict = {'id': new_user.id, 'username': new_user.username, 'email': new_user.email}
+        user_dict = {
+            'id': new_user.id,
+            'username': new_user.username,
+            'email': new_user.email
+        }
         return jsonify(user_dict), 201
     except Exception as e:
         db.session.rollback()
         logging.error(f"Error creating user: {e}")
         return jsonify({"error": "An error occurred during signup"}), 500
-
-def get_current_user_email():
-    try:
-        current_user = get_jwt_identity()
-        if 'email' in current_user:
-            return current_user['email']
-        else:
-            raise ValueError("Email not found in JWT")
-    except Exception as e:
-        raise ValueError(f"Error retrieving email: {str(e)}")
-
-
-def generate_2fa_code():
-    return ''.join(random.choices(string.digits, k=6))
-
-@app.route('/send-2fa-code', methods=['POST'])
-@jwt_required()
-def send_2fa_code():
-    try:
-        user_id = get_jwt_identity()
-        print(f"User ID from JWT: {user_id}")
-
-        user = User.query.get(user_id)
-        if not user:
-            return jsonify({"error": "User not found"}), 404
-
-        user_email = user.email
-        if not user_email:
-            return jsonify({"error": "No email found for user"}), 400
-
-        # Generate and store 2FA code
-        two_factor_code = generate_2fa_code()
-        user.two_factor_code = two_factor_code
-        user.code_expiry_time = datetime.utcnow() + timedelta(minutes=10)  # Set expiry time for 10 minutes
-
-        # Log the generated code to verify it
-        app.logger.info(f"Generated 2FA code: {two_factor_code} for user: {user_id}")
-
-        # Commit changes to the database
-        db.session.commit()
-
-        msg = Message("Your 2FA Code",
-                      sender=app.config['MAIL_USERNAME'],
-                      recipients=[user_email])
-        msg.body = f"Your 2FA code is {two_factor_code}"
-
-        mail.send(msg)
-        return jsonify({"message": "2FA code sent successfully"}), 200
-    except Exception as e:
-        app.logger.error(f"Error sending 2FA code: {e}")
-        return jsonify({"error": "Failed to send 2FA code"}), 500
-
-
-@app.route('/verify-2fa-code', methods=['POST'])
-@jwt_required()
-def verify_2fa_code():
-    data = request.json
-    code = data.get('code')
-    app.logger.info(f"Received 2FA code for verification: {code}")
-
-    current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
-
-    if user:
-        # Check if the code matches and is not expired
-        if user.two_factor_code == code and user.code_expiry_time > datetime.utcnow():
-            app.logger.info("2FA code verified successfully")
-            return jsonify({"message": "2FA code verified successfully"}), 200
-        else:
-            app.logger.info(f"Invalid or expired 2FA code: {code}")
-            return jsonify({"error": "Invalid or expired 2FA code"}), 400
-    else:
-        app.logger.info("User not found")
-        return jsonify({"error": "User not found"}), 404
-
 
 @app.route("/all_users")
 def get_all_users():
@@ -512,7 +431,7 @@ def get_reviews():
 @jwt_required()  
 def create_review():
     data = request.get_json()
-    user_id = get_jwt_identity() 
+    user_id = get_jwt_identity().get('id')  
 
     if not user_id:
         return jsonify({'error': 'User ID not found in token'}), 401
@@ -531,7 +450,7 @@ def create_review():
 @app.route('/reviews/<int:user_id>', methods=['GET'])
 @jwt_required()
 def get_my_reviews(user_id):
-    token_user_id = get_jwt_identity()
+    token_user_id = get_jwt_identity().get('id')
     if token_user_id != user_id:
         return jsonify({'error': 'Unauthorized access'}), 403
 
@@ -551,7 +470,7 @@ def get_my_reviews(user_id):
 @app.route('/orders', methods=['GET'])
 @jwt_required()
 def get_orders():
-    user_id = get_jwt_identity()    
+    user_id = get_jwt_identity().get('id')
     if user_id is None:
         return jsonify({"msg": "User ID is missing"}), 400
 
@@ -594,24 +513,28 @@ def create_order():
 
 @app.route('/services', methods=['POST'])
 def create_service():
-    data = request.get_json()
+    order_id = request.form.get('order_id')
+    mechanic_id = request.form.get('mechanic_id')
+    description = request.form.get('description')
+    cost = request.form.get('cost')
+    image_url = None
+
     image = request.files.get('image')
-    
     if image:
-        upload_result = cloudinary.uploader.upload(image)
+        upload_result = uploader.upload(image)
         image_url = upload_result.get('url')
-    else:
-        image_url = data.get('image_url')
-    
+
     service = Service(
-        order_id=data['order_id'],
-        mechanic_id=data['mechanic_id'],
-        description=data['description'],
-        cost=data['cost'],
+        order_id=order_id,
+        mechanic_id=mechanic_id,
+        description=description,
+        cost=cost,
         image_url=image_url
     )
+
     db.session.add(service)
     db.session.commit()
+
     return jsonify({'id': service.id}), 201
 
 @app.route('/services', methods=['GET'])
@@ -630,12 +553,47 @@ def get_services():
         })
     return jsonify(services_list), 200
 
+@app.route('/services/<int:service_id>', methods=['PATCH'])
+def update_service(service_id):
+    service = Service.query.get_or_404(service_id)
+
+    if 'order_id' in request.form:
+        service.order_id = request.form['order_id']
+    if 'mechanic_id' in request.form:
+        service.mechanic_id = request.form['mechanic_id']
+    if 'description' in request.form:
+        service.description = request.form['description']
+    if 'cost' in request.form:
+        service.cost = request.form['cost']
+
+    image = request.files.get('image')
+    if image:
+        upload_result = uploader.upload(image)
+        service.image_url = upload_result.get('url')
+
+    db.session.commit()
+
+    return jsonify({'message': 'Service updated successfully'}), 200
+
+@app.route('/services/<int:service_id>', methods=['DELETE'])
+def delete_service(service_id):
+    service = Service.query.get_or_404(service_id)
+
+    if service.image_url:
+        public_id = service.image_url.split('/')[-1].split('.')[0]
+        uploader.destroy(public_id)
+
+    db.session.delete(service)
+    db.session.commit()
+
+    return jsonify({'message': 'Service deleted successfully'}), 200
 
 @app.route('/cart', methods=['POST'])
 @jwt_required()
 def add_to_cart():
     try:
-        user_id = get_jwt_identity()  # Directly use the integer returned by get_jwt_identity()
+        user_identity = get_jwt_identity()
+        user_id = user_identity['id']
 
         data = request.get_json()
         part_id = data.get('part_id')
@@ -655,7 +613,7 @@ def add_to_cart():
             part_name=part_name,
             quantity=quantity,
             price=price,
-            total_amount=total_amount,
+            total_amount=total_amount,  # Include total_amount in Cart instance
             image_url=image_url
         )
 
@@ -668,7 +626,7 @@ def add_to_cart():
             'part_name': part_name,
             'quantity': quantity,
             'price': price,
-            'total_amount': total_amount,
+            'total_amount': total_amount,  # Include total_amount in response
             'image_url': image_url
         }}), 201
 
@@ -678,13 +636,14 @@ def add_to_cart():
         return jsonify({'msg': 'Internal server error', 'error': str(e)}), 500
 
 
-
-
 @app.route('/cart', methods=['GET'])
 @jwt_required()
 def get_cart():
     try:
-        user_id = get_jwt_identity()  # Directly use the integer returned by get_jwt_identity()
+        current_user = get_jwt_identity()
+        user_id = current_user.get('id')
+        if not user_id:
+            raise ValueError("User ID not found in JWT token")
 
         items = Cart.query.filter_by(user_id=user_id).all()
         
@@ -708,13 +667,15 @@ def get_cart():
         app.logger.error(f'Error fetching cart items: {e}')
         return jsonify({'msg': 'Internal server error', 'error': str(e)}), 500
 
-
 @app.route('/cart/<int:part_id>', methods=['DELETE'])
 @jwt_required()
 def delete_cart_item(part_id):
     try:
-        user_id = get_jwt_identity()  
-        cart_item = Cart.query.filter_by(part_id=part_id, user_id=user_id).first()
+        current_user_id = get_jwt_identity()
+        if isinstance(current_user_id, dict):
+            current_user_id = current_user_id.get('id')
+
+        cart_item = Cart.query.filter_by(part_id=part_id, user_id=current_user_id).first()
 
         if cart_item:
             db.session.delete(cart_item)
@@ -728,80 +689,6 @@ def delete_cart_item(part_id):
         return jsonify({'msg': 'Internal server error', 'error': str(e)}), 500
 
 
-publishable_key = "ISPubKey_live_e35bc477-8dd6-4f58-9cf9-44868bd77cd5"
-private_key = "ISSecretKey_live_1b9aa9e8-c3a9-4d07-99f2-56577a609ff5"
-
-service = APIService(token=private_key, publishable_key=publishable_key, private_key=None)
-
-@app.route('/create-checkout', methods=['POST'])
-def create_checkout():
-    data = request.json
-    phone_number = data.get('phone_number')
-    email = data.get('email')
-    amount = data.get('amount')
-
-    # Log incoming data for debugging
-    print(f"Received data: phone_number={phone_number}, email={email}, amount={amount}")
-
-    if not phone_number or not email or amount is None:
-        return jsonify({"error": "Missing required fields"}), 400
-
-    try:
-        response = service.collect.checkout(
-            phone_number=phone_number,
-            email=email,
-            amount=amount,
-            currency="KES",
-            comment="Service Fees"
-        )
-        payment_url = response.get("url")
-        return jsonify({"payment_url": payment_url})
-    except Exception as e:
-        print(f"Error during checkout: {e}")
-        return jsonify({"error": str(e)}), 500
-
-import requests
-import uuid
-
-def generate_tx_ref():
-    return str(uuid.uuid4())
-
-def get_callback_url():
-    return 'https://http://localhost:5173/api/payment/callback'
-
-def get_redirect_url():
-    return 'https://http://localhost:5173/payment-complete'
-
-def generate_payment_url(phone_number, email, amount):
-    # IntaSend API credentials
-    api_key = 'your_api_key_here'
-    base_url = 'https://api.intasend.com/v1/checkout/'
-
-    # Payment data
-    payload = {
-        'amount': amount,
-        'currency': 'KES',  
-        'payment_method': 'M-PESA', 
-        'phone_number': phone_number,
-        'email': email,
-        'tx_ref': generate_tx_ref(),
-        'callback_url': get_callback_url(),
-        'redirect_url': get_redirect_url()
-    }
-
-    headers = {
-        'Authorization': f'Bearer {api_key}',
-        'Content-Type': 'application/json',
-    }
-    
-    response = requests.post(base_url, json=payload, headers=headers)
-    
-    if response.status_code == 201:
-        return response.json().get('url')
-    else:
-        print('Error:', response.json())
-        return None
-    
 @app.route('/appointment', methods=['POST'])
 def create_appointment():
     try:

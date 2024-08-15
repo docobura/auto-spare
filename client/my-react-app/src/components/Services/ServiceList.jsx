@@ -9,7 +9,7 @@ const ServiceList = ({ services }) => {
           key={index}
           id={service.id} // Pass the service ID
           label={service.description}
-          imageUrl={service.imageUrl}
+          imageUrl={service.image_url}
           description={service.additionalDescription} 
           price={service.cost} 
         />

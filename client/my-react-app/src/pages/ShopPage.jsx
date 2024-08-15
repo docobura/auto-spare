@@ -1,53 +1,27 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../components/Auth/AuthContext';
 
 const Header = () => {
-  const { userRole, logout } = useAuth();
-  const navigate = useNavigate();
-
-  const handleDashboardClick = (e) => {
-    e.preventDefault();
-    if (userRole === 'Admin') {
-      navigate('/admin-dashboard');
-    } else {
-      navigate('/dashboard');
-    }
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login'); 
-  };
-
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 py-3 pr-6 pl-6 w-screen bg-white rounded-full shadow-md">
+    <header className="fixed top-0 left-0 right-0 z-50 py-3 pr-6 pl-6 w-screen bg-white bg-opacity-50 rounded-full">
       <nav className="flex justify-between items-center">
         <Link to="/" className="flex items-center gap-2 text-lg text-black">
           <div className="flex shrink-0 w-10 h-10 bg-black rounded-full" />
           <div className="text-lg">AutoSavy</div>
         </Link>
-        <div className="flex gap-4 text-sm items-center">
+        <div className="flex gap-4 text-sm">
           <Link to="/shop" className="text-black hover:text-gray-700">Shop</Link>
-          <a href="#" onClick={handleDashboardClick} className="text-black hover:text-gray-700">Dashboard</a>
+          <Link to="/dashboard" className="text-black hover:text-gray-700">Dashboard</Link>
           <Link to="/servicing" className="text-black hover:text-gray-700">Servicing</Link>
           <Link to="/reviews" className="text-black hover:text-gray-700">Reviews</Link>
           <Link to="/cart" className="text-black hover:text-gray-700">Cart</Link>
-          {userRole ? (
-            <button 
-              onClick={handleLogout} 
-              className="text-black hover:text-gray-700 bg-transparent border-none cursor-pointer">
-              Logout
-            </button>
-          ) : (
-            <Link to="/login" className="text-black hover:text-gray-700">Login</Link>
-          )}
         </div>
       </nav>
     </header>
   );
 };
+
 // SearchBar Component
 const SearchBar = ({ searchTerm, setSearchTerm }) => {
   const handleSearch = (e) => {
@@ -154,6 +128,93 @@ const ProductCard = ({ id, name, price, description, image }) => {
   );
 };
 
+// AddPartForm Component
+const AddPartForm = ({ onClose, onAddPart }) => {
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [price, setPrice] = useState('');
+  const [stock, setStock] = useState('');
+  const [image, setImage] = useState(null);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('description', description);
+    formData.append('price', price);
+    formData.append('stock', stock);
+    formData.append('image', image);
+
+    fetch('http://localhost:5000/parts', {
+      method: 'POST',
+      body: formData,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        onAddPart(data);
+        onClose();
+      })
+      .catch((error) => {
+        console.error('Error adding part:', error);
+      });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white p-8 rounded-lg shadow-lg w-[90%] max-w-md">
+        <h2 className="text-xl font-semibold text-black mb-4">Add New Part</h2>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <input
+            type="text"
+            placeholder="Part Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg"
+            required
+          />
+          <textarea
+            placeholder="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg"
+            required
+          />
+          <input
+            type="number"
+            placeholder="Price"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg"
+            required
+          />
+          <input
+            type="number"
+            placeholder="Stock Quantity"
+            value={stock}
+            onChange={(e) => setStock(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg"
+            required
+          />
+          <input
+            type="file"
+            onChange={(e) => setImage(e.target.files[0])}
+            className="px-3 py-2 border border-gray-300 rounded-lg"
+            required
+          />
+          <div className="flex justify-end gap-2">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-white bg-gray-500 rounded-lg">
+              Cancel
+            </button>
+            <button type="submit" className="px-4 py-2 text-white bg-blue-500 rounded-lg">
+              Add Part
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
 
 // ShopPage Component
 const ShopPage = () => {
@@ -203,6 +264,12 @@ const ShopPage = () => {
           <div className="flex items-center gap-3">
             <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
             <FilterButton />
+            <button
+              onClick={() => setIsFormOpen(true)}
+              className="px-4 py-2 text-white bg-blue-500 rounded-lg"
+            >
+              Post New Part
+            </button>
           </div>
         </header>
         <section className="flex flex-wrap gap-6 mt-8 justify-center h-full">
@@ -213,7 +280,7 @@ const ShopPage = () => {
               name={part.name}
               price={part.price}
               description={part.description}
-              image={part.image}
+              image={part.image_url}
             />
           ))}
         </section>
