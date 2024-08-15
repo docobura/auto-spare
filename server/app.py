@@ -49,27 +49,20 @@ cloudinary.config(
     api_secret='aRE8edsHfXlFPKfMLI5bkp0LB18'
 )
 def send_confirmation_email(user_email, appointment_details):
-    email_data = {
-        "from": {
-            "email": "munenelornah@gmail.com", 
-            "name": "Auto Savy"
-        },
-        "to": [
-            {
-                "email": user_email,
-                "name": "User Name"
-            }
-        ],
-        "subject": "Appointment Confirmation",
-        "html": f"<h1>Your Appointment is Confirmed</h1><p>Details: {appointment_details}</p>",
-        "text": f"Your appointment is confirmed. Details: {appointment_details}"
-    }
-
+    msg = Message(
+        subject="Appointment Confirmation",
+        recipients=[user_email],
+        html=f"<h1>Your Appointment is Confirmed</h1><p>Details: {appointment_details}</p>",
+        body=f"Your appointment is confirmed. Details: {appointment_details}"
+    )
+    
     try:
-        mailer.send(email_data)
+        mail.send(msg)
         print("Confirmation email sent successfully.")
     except Exception as e:
         print(f"Failed to send email: {e}")
+
+        
 @app.route('/confirm_appointment', methods=['POST'])
 def confirm_appointment():
     data = request.json
