@@ -2,7 +2,7 @@ import React from 'react';
 import AddProductsForm from '../components/Products/AddProductsForm';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../components/Auth/AuthContext';
-
+import { useState } from 'react';
 const Header = () => {
   const { userRole, logout } = useAuth();
   const navigate = useNavigate();
