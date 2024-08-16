@@ -770,15 +770,13 @@ def send_purchase_email(email, cart_items, total_amount, mpesa_number):
     )
 
     try:
-        app.mail.send(msg)  # Use the mail object from current_app
+        mail.send(msg)
         print("Email sent successfully.")
         return True
     except Exception as e:
         print(f"Failed to send email: {e}")
         return False
-    
-from flask import Flask, request, jsonify
-from flask_jwt_extended import jwt_required
+
 
 @app.route('/send-email', methods=['POST'])
 @jwt_required()

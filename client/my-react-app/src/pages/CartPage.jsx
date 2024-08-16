@@ -174,12 +174,14 @@ const CartPage = () => {
     };
 
     const handleCheckout = async () => {
+      const token = localStorage.getItem('authToken'); 
       console.log('Checkout data:', {
           user_id: userId,
           cart_items: cartItems
       });
   
       try {
+          // Create order
           const orderResponse = await fetch('https://auto-spare.onrender.com/orders', {
               method: 'POST',
               headers: {
@@ -194,37 +196,34 @@ const CartPage = () => {
   
           if (!orderResponse.ok) {
               const errorData = await orderResponse.json();
-              console.error('Error during order creation:', errorData);
-              throw new Error(errorData.error || 'Unknown error');
+              throw new Error(`Order creation failed: ${errorData.error || 'Unknown error'}`);
           }
   
           const orderResult = await orderResponse.json();
           console.log('Order created successfully:', orderResult);
   
-          // Send email to user with purchase details and MPesa number
+          // Send email
           const emailResponse = await fetch('https://auto-spare.onrender.com/send-email', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${authToken}` // Include the authorization header if required
+                  'Authorization': `Bearer ${token}` 
               },
               body: JSON.stringify({
                   email: userEmail,
                   cartItems,
                   totalAmount,
-                  mpesaNumber: '123456' // Example MPesa number
+                  mpesaNumber: '123456' 
               })
           });
   
           if (!emailResponse.ok) {
               const errorData = await emailResponse.json();
-              console.error('Error sending email:', errorData);
-              throw new Error(errorData.error || 'Unknown error');
+              throw new Error(`Email sending failed: ${errorData.error || 'Unknown error'}`);
           }
   
           console.log('Email sent successfully');
   
-          // Clear cart items
           localStorage.removeItem('cartItems');
           setCartItems([]);
   
