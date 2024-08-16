@@ -505,12 +505,15 @@ def get_reviews():
     ]
     return jsonify(reviews_list), 200
 
+from flask_jwt_extended import jwt_required, get_jwt_identity
+
 @app.route('/my-reviews', methods=['GET'])
 @jwt_required()
 def get_my_reviews():
-    user_id = get_jwt_identity()  # Extract user ID from the token
+    user_id = get_jwt_identity()  # This will work after the JWT is verified
     reviews = Review.query.filter_by(user_id=user_id).all()
     return jsonify([review.to_dict() for review in reviews])
+
 
 @app.route('/reviews', methods=['POST'])
 @jwt_required()  

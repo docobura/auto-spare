@@ -74,6 +74,16 @@ class Review(db.Model):
     status = db.Column(db.String(50), nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'body': self.body,
+            'user_id': self.user_id,
+            'status': self.status,
+            'created_at': self.created_at.isoformat()  # Convert datetime to string
+        }
+
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
