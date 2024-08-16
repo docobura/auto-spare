@@ -109,7 +109,7 @@ const QuantityInput = ({ quantity, setQuantity }) => {
     <div className="flex items-center border border-gray-300 rounded-md w-32">
       <button
         onClick={handleDecrease}
-        className="w-12 p-2 bg-gray-200 border-none rounded-l-md"
+        className="w-12 p-2 bg-black-200 border-none rounded-l-md"
         aria-label="Decrease quantity"
       >
         -
@@ -119,12 +119,12 @@ const QuantityInput = ({ quantity, setQuantity }) => {
         value={quantity}
         onChange={handleInputChange}
         min="1"
-        className="w-16 p-2 bg-gray-200 border-none text-center"
+        className="w-16 p-2 bg-black-200 border-none text-center"
         aria-label="Custom quantity"
       />
       <button
         onClick={handleIncrease}
-        className="w-12 p-2 bg-gray-200 border-none rounded-r-md"
+        className="w-12 p-2 bg-black-200 border-none rounded-r-md"
         aria-label="Increase quantity"
       >
         +
@@ -152,39 +152,70 @@ const Footer = () => {
 const ProductPage = () => {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
-  const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { authToken, userId } = useAuth(); 
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await fetch(`https://auto-spare.onrender.com/parts/${id}`);
+        const response = await fetch(`https://auto-spare.onrender.com/parts/${id}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          }
+        });
+
         if (!response.ok) {
-          throw new Error('Network response was not ok');
+          throw new Error(`HTTP error! Status: ${response.status}`);
         }
+
         const data = await response.json();
         setProduct(data);
-      } catch (error) {
-        setError('Error fetching product details.');
-        console.error('Error fetching product:', error);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchProduct();
-  }, [id]);
+  }, [id, authToken]);
 
-  const handleAddToCart = () => {
-    console.log('Add to Cart clicked with quantity:', quantity);
+  const handleAddToCart = async () => {
+    try {
+      const response = await fetch('https://auto-spare.onrender.com/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({
+          part_id: product.id, 
+          part_name: product.name,  
+          quantity: quantity,
+          price: product.price,
+          image_url: product.image_url
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to add item to cart. Status: ${response.status}`);
+      }
+
+      alert('Product added to cart!');
+      navigate('/cart');
+    } catch (err) {
+      console.error(err.message);
+      alert('Failed to add product to cart.');
+    }
   };
 
-  if (error) {
-    return <div className="text-red-500">{error}</div>;
-  }
-
-  if (!product) {
-    return <div className="text-white">Loading...</div>;
-  }
+  if (loading) return <div className="flex justify-center items-center h-screen text-white">Loading...</div>;
+  if (error) return <div className="flex justify-center items-center h-screen text-red-500">Error fetching product details: {error}</div>;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -194,8 +225,8 @@ const ProductPage = () => {
           <div className="flex flex-col lg:flex-row w-full gap-6">
             <div className="flex-shrink-0 lg:w-1/2">
               <img
-                src={product.image_url || 'path/to/placeholder-image.jpg'} 
-                alt={product.name}
+                src={product?.image_url || 'path/to/placeholder-image.jpg'}
+                alt={product?.name || 'Product'}
                 className="w-full h-auto object-cover rounded-lg shadow-lg"
                 onError={(e) => {
                   e.target.onerror = null;
@@ -204,12 +235,14 @@ const ProductPage = () => {
               />
             </div>
             <div className="flex-1 lg:ml-6 lg:w-1/2">
-              <h1 className="text-3xl text-white">{product.name}</h1>
-              <p className="text-lg text-gray-300 mt-2">{product.description}</p>
+              <h1 className="text-3xl text-white">{product?.name || 'Product Name'}</h1>
+              <p className="text-lg text-gray-300 mt-2">{product?.description || 'Product Description'}</p>
               <div className="mt-4">
-                <span className="text-xl text-white">Price: ${product.price}</span>
+                <span className="text-xl text-white">Price: ${product?.price || '0.00'}</span>
               </div>
-              <QuantityInput quantity={quantity} setQuantity={setQuantity} />
+              <div className="mt-4">
+                <QuantityInput quantity={quantity} setQuantity={setQuantity} />
+              </div>
               <button
                 className="mt-4 px-8 py-3 text-lg text-white bg-blue-600 rounded-lg hover:bg-blue-700"
                 onClick={handleAddToCart}
