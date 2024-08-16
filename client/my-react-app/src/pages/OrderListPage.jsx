@@ -122,7 +122,7 @@ const OrderListPage = () => {
   if (error) return <p>Error fetching orders: {error.message}</p>;
 
   return (
-    <main className="flex flex-col w-screen bg-gray-100">
+    <main className="flex flex-col h-screen w-screen bg-gray-100">
       <Header />
       <section className="flex-grow pt-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">

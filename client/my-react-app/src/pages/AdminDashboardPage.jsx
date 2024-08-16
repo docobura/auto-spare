@@ -138,7 +138,6 @@ const AdminDashboard = () => {
         <div className="grid grid-cols-1 gap-4 w-full max-w-md">
           <DashboardItem title="Add Products" onClick={() => handleItemClick('/add-product')} />
           <DashboardItem title="View Customer Reviews" onClick={() => handleItemClick('/reviews')} />
-          <DashboardItem title="View Customer Servicing Appointments" onClick={() => handleItemClick('/appointment')} />
           <DashboardItem title="View Customer Orders" onClick={() => handleItemClick('/orders')} />
           <DashboardItem title="Log out" onClick={() => handleItemClick('/logout')} />
         </div>
