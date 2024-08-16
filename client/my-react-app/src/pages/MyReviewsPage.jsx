@@ -111,7 +111,7 @@ const Header = () => {
             }
     
             try {
-                const response = await fetch(`http://auto-spare.onrender.com/my-reviews`, {
+                const response = await fetch(`https://auto-spare.onrender.com/my-reviews`, {
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${authToken}`

@@ -749,6 +749,53 @@ def delete_cart_item(part_id):
         app.logger.error(f'Error deleting cart item: {e}')
         return jsonify({'msg': 'Internal server error', 'error': str(e)}), 500
 
+def send_purchase_email(email, cart_items, total_amount, mpesa_number):
+    item_details = "\n".join([f"{item['part_name']} x {item['quantity']}" for item in cart_items])
+    email_body = f"""
+    Thank you for your purchase!
+
+    Your order details:
+    {item_details}
+
+    Total Amount: {total_amount}
+
+    Please send the payment to the following MPesa number: {mpesa_number}
+    """
+
+    msg = Message(
+        subject="Your Purchase Details",
+        recipients=[email],
+        html=f"<h1>Thank you for your purchase!</h1><p>Your order details:<br>{item_details}<br>Total Amount: {total_amount}<br>Please send the payment to: {mpesa_number}</p>",
+        body=email_body
+    )
+
+    try:
+        app.mail.send(msg)  # Use the mail object from current_app
+        print("Email sent successfully.")
+        return True
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+        return False
+    
+from flask import Flask, request, jsonify
+from flask_jwt_extended import jwt_required
+
+@app.route('/send-email', methods=['POST'])
+@jwt_required()
+def send_email():
+    data = request.get_json()
+    email = data.get('email')
+    cart_items = data.get('cartItems')
+    total_amount = data.get('totalAmount')
+    mpesa_number = data.get('mpesaNumber')
+
+    if not email or not cart_items or not total_amount or not mpesa_number:
+        return jsonify({'error': 'Missing information'}), 400
+
+    if send_purchase_email(email, cart_items, total_amount, mpesa_number):
+        return jsonify({'message': 'Email sent successfully'}), 200
+    else:
+        return jsonify({'msg': 'Internal server error'}), 500
 
 @app.route('/appointment', methods=['POST'])
 def create_appointment():

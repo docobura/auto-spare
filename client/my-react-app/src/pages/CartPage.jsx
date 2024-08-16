@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link , useNavigate} from 'react-router-dom'; 
 import { useAuth } from '../components/Auth/AuthContext';
@@ -94,9 +93,8 @@ const CartPage = () => {
     const [totalAmount, setTotalAmount] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [phoneNumber, setPhoneNumber] = useState('');
     const [userEmail, setUserEmail] = useState('');
-    const { authToken, userId } = useAuth(); // Use userId and authToken from context
+    const { authToken, userId } = useAuth(); 
 
     useEffect(() => {
         const fetchCartItems = async () => {
@@ -117,10 +115,10 @@ const CartPage = () => {
                 const items = data.items || [];
                 const amount = data.total_amount || 0;
                 
-                console.log('Fetched cart items:', items); // Verify data structure
+                console.log('Fetched cart items:', items);
                 localStorage.setItem('cartItems', JSON.stringify(items));
                 setCartItems(items);
-                setTotalAmount(amount); // Set total amount from backend
+                setTotalAmount(amount);
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -176,67 +174,64 @@ const CartPage = () => {
     };
 
     const handleCheckout = async () => {
-        console.log('Checkout data:', {
-            user_id: userId, 
-            cart_items: cartItems
-        });
-    
-        try {
-            // Post cart data to your order endpoint
-            const orderResponse = await fetch('https://auto-spare.onrender.com/orders', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}`
-                },
-                body: JSON.stringify({
-                    user_id: userId, 
-                    cart_items: cartItems
-                })
-            });
-    
-            if (!orderResponse.ok) {
-                const errorData = await orderResponse.json();
-                console.error('Error during order creation:', errorData);
-                throw new Error(errorData.error || 'Unknown error');
-            }
-    
-            const orderResult = await orderResponse.json();
-            console.log('Order created successfully:', orderResult);
-    
-            // Now proceed with payment
-            const paymentResponse = await fetch('https://auto-spare.onrender.com/create-checkout', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    phone_number: phoneNumber, // Use phoneNumber state
-                    email: userEmail, // Use userEmail state
-                    amount: totalAmount // Use totalAmount from the state
-                })
-            });
-    
-            if (!paymentResponse.ok) {
-                const errorData = await paymentResponse.json();
-                console.error('Error during checkout creation:', errorData);
-                throw new Error(errorData.error || 'Unknown error');
-            }
-    
-            const paymentResult = await paymentResponse.json();
-            console.log('Checkout created successfully:', paymentResult);
-    
-            // Redirect user to the payment URL
-            window.location.href = paymentResult.payment_url;
-    
-            // Clear cart items
-            localStorage.removeItem('cartItems');
-            setCartItems([]);
-    
-        } catch (error) {
-            console.error('Error during checkout:', error.message);
-        }
-    };
+      console.log('Checkout data:', {
+          user_id: userId,
+          cart_items: cartItems
+      });
+  
+      try {
+          const orderResponse = await fetch('https://auto-spare.onrender.com/orders', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${authToken}`
+              },
+              body: JSON.stringify({
+                  user_id: userId,
+                  cart_items: cartItems
+              })
+          });
+  
+          if (!orderResponse.ok) {
+              const errorData = await orderResponse.json();
+              console.error('Error during order creation:', errorData);
+              throw new Error(errorData.error || 'Unknown error');
+          }
+  
+          const orderResult = await orderResponse.json();
+          console.log('Order created successfully:', orderResult);
+  
+          // Send email to user with purchase details and MPesa number
+          const emailResponse = await fetch('https://auto-spare.onrender.com/send-email', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${authToken}` // Include the authorization header if required
+              },
+              body: JSON.stringify({
+                  email: userEmail,
+                  cartItems,
+                  totalAmount,
+                  mpesaNumber: '123456' // Example MPesa number
+              })
+          });
+  
+          if (!emailResponse.ok) {
+              const errorData = await emailResponse.json();
+              console.error('Error sending email:', errorData);
+              throw new Error(errorData.error || 'Unknown error');
+          }
+  
+          console.log('Email sent successfully');
+  
+          // Clear cart items
+          localStorage.removeItem('cartItems');
+          setCartItems([]);
+  
+      } catch (error) {
+          console.error('Error during checkout:', error.message);
+      }
+  };
     
     if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
     if (error) return <div className="flex justify-center items-center h-screen">Error fetching cart items: {error}</div>;
@@ -250,48 +245,34 @@ const CartPage = () => {
                 </header>
                 <section className="flex flex-col gap-6 mt-8 justify-center items-center h-full">
                     {cartItems.length === 0 ? (
-                        <p className="text-white">Your cart is empty.</p>
+                        <p className="text-black">Your cart is empty.</p>
                     ) : (
-                        <ul className="w-full max-w-2xl">
+                        <ul className="w-full text-black max-w-2xl">
                             {cartItems.map(item => (
-                                <li key={item.part_id} className="flex justify-between items-center p-4 mb-4 bg-white rounded-lg shadow-md">
-                                    {item.image_url && (
-                                        <img 
-                                            src={item.image_url} 
-                                            alt={item.part_name} 
-                                            className="w-16 h-16 object-cover rounded-md mr-4"
-                                        />
-                                    )}
-                                    <div className="flex-grow">
-                                        <h2 className="text-lg font-semibold text-black">{item.part_name}</h2>
-                                        <p className="text-sm text-gray-700">Quantity: {item.quantity}</p>
+                                <li key={item.part_id} className="flex justify-between bg-white shadow-md p-4 rounded-lg mb-4">
+                                    <div>
+                                        <h2 className="text-black text-lg font-semibold">{item.part_name}</h2>
+                                        <p>Quantity: {item.quantity}</p>
                                     </div>
-                                    <button
-                                        onClick={() => handleRemoveItem(item.part_id)}
-                                        className="px-4 py-2 text-sm text-white bg-red-600 rounded-lg"
-                                    >
-                                        Remove
-                                    </button>
+                                    <div className="flex items-center">
+                                        <button 
+                                            onClick={() => handleRemoveItem(item.part_id)} 
+                                            className="text-red-600 hover:text-red-800 ml-4"
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
                                 </li>
                             ))}
                         </ul>
                     )}
                     {cartItems.length > 0 && (
-                        <>
-                            <input
-                                type="text"
-                                placeholder="Enter your phone number"
-                                value={phoneNumber}
-                                onChange={(e) => setPhoneNumber(e.target.value)}
-                                className="px-4 py-2 mt-4 w-full max-w-lg text-white rounded-lg"
-                            />
-                            <button
-                                onClick={handleCheckout}
-                                className="px-8 py-3 mt-6 text-xl text-white bg-green-600 rounded-lg"
-                            >
-                                Checkout
-                            </button>
-                        </>
+                        <button 
+                            onClick={handleCheckout} 
+                            className="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-800 mt-4"
+                        >
+                            Checkout
+                        </button>
                     )}
                 </section>
             </main>
