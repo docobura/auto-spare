@@ -109,7 +109,7 @@ const QuantityInput = ({ quantity, setQuantity }) => {
     <div className="flex items-center border border-gray-300 rounded-md w-32">
       <button
         onClick={handleDecrease}
-        className="w-12 p-2 bg-black-200 border-none rounded-l-md"
+        className="w-12 p-2 bg-transparent border-none rounded-l-md"
         aria-label="Decrease quantity"
       >
         -
@@ -119,12 +119,12 @@ const QuantityInput = ({ quantity, setQuantity }) => {
         value={quantity}
         onChange={handleInputChange}
         min="1"
-        className="w-16 p-2 bg-black-200 border-none text-center"
+        className="w-16 p-2 bg-transparent border-none text-center"
         aria-label="Custom quantity"
       />
       <button
         onClick={handleIncrease}
-        className="w-12 p-2 bg-black-200 border-none rounded-r-md"
+        className="w-12 p-2 bg-transparent border-none rounded-r-md"
         aria-label="Increase quantity"
       >
         +
