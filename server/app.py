@@ -235,7 +235,7 @@ def contact_us():
         subject="New Contact Us Message",
         recipients=['nathanieljaden490@gmail.com'],  # Replace with your email
         body=email_body
-    )
+    )   
 
     try:
         mail.send(msg)

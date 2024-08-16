@@ -2,6 +2,7 @@
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../components/Auth/AuthContext'; // Adjust the import path
+import { useState } from 'react';
 
 const Header = () => {
   const { userRole, logout } = useAuth();

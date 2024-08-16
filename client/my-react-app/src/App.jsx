@@ -37,7 +37,7 @@ const App = () => {
           <Route path="/servicing" element={<ServiceListContainer />} />
           <Route path="/service-appointment" element={<ServiceAppointmentPage />} />  
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-<Route path="/terms-of-service" element={<TermsOfServicePage />} />        
+          <Route path="/terms-of-service" element={<TermsOfServicePage />} />        
           {/* Admin-only routes */}
           <Route path="/admin-dashboard" element={<AdminRoute element={<AdminDashboard />} />} />
           <Route path="/add-product" element={<AdminRoute element={<AddProductFormPage />} />} />
