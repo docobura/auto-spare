@@ -233,7 +233,7 @@ def contact_us():
 
     msg = Message(
         subject="New Contact Us Message",
-        recipients=['your-email@example.com'],  # Replace with your email
+        recipients=['nathanieljaden490@gmail.com'],  # Replace with your email
         body=email_body
     )
 
