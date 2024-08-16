@@ -346,27 +346,81 @@ const FAQs = () => {
   );
 };
 
-const ContactUs = () => (
-  <section className="flex flex-col items-center px-8 py-10 w-screen text-center text-black bg-gray-50">
-    <div className="flex flex-col w-full max-w-3xl">
-      <h2 className="text-3xl mb-6">Contact Us</h2>
-      <div className="flex flex-col gap-4">
-        <textarea
-          className="w-full py-3 text-lg bg-white border border-gray-300 rounded-md"
-          placeholder="Message"
-        />
-        <input
-          type="text"
-          className="w-full py-3 text-lg bg-white border border-gray-300 rounded-md"
-          placeholder="Phone"
-        />
-        <button className="w-full px-4 py-2 text-lg text-center text-white bg-slate-600 rounded-full">
-          Submit
-        </button>
-      </div>
-    </div>
-  </section>
-);
+const ContactUs = () => {
+  const [message, setMessage] = useState('');
+  const [phone, setPhone] = useState('');
+  const [userEmail, setUserEmail] = useState('');
+
+  const handleSubmit = async (event) => {
+      event.preventDefault();
+
+      try {
+          const response = await fetch('https://auto-spare.onrender.com/contact-us', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                  email: userEmail,
+                  message,
+                  phone,
+              }),
+          });
+
+          if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(`Email sending failed: ${errorData.error || 'Unknown error'}`);
+          }
+
+          const result = await response.json();
+          console.log('Message sent successfully:', result.message);
+          // Optionally show a success message to the user
+
+      } catch (error) {
+          console.error('Error sending message:', error.message);
+          // Optionally show a user-friendly error message
+      }
+  };
+
+  return (
+      <section className="flex flex-col items-center px-8 py-10 w-screen text-center text-black bg-gray-50">
+          <div className="flex flex-col w-full max-w-3xl">
+              <h2 className="text-3xl mb-6">Contact Us</h2>
+              <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+                  <textarea
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      className="w-full py-3 text-lg bg-white border border-gray-300 rounded-md"
+                      placeholder="Message"
+                      required
+                  />
+                  <input
+                      type="text"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="w-full py-3 text-lg bg-white border border-gray-300 rounded-md"
+                      placeholder="Phone"
+                  />
+                  <input
+                      type="email"
+                      value={userEmail}
+                      onChange={(e) => setUserEmail(e.target.value)}
+                      className="w-full py-3 text-lg bg-white border border-gray-300 rounded-md"
+                      placeholder="Your Email"
+                      required
+                  />
+                  <button
+                      type="submit"
+                      className="w-full px-4 py-2 text-lg text-center text-white bg-slate-600 rounded-full"
+                  >
+                      Submit
+                  </button>
+              </form>
+          </div>
+      </section>
+  );
+};
+
 
 const HomePage = () => {
   return (

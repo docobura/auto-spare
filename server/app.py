@@ -79,9 +79,6 @@ def send_2fa_code_via_email(email, code):
     msg.body = f"Your 2FA code is {code}. It will expire in 5 minutes."
     mail.send(msg)
 
-
-
-
 @app.route("/login", methods=['POST'])
 def login():
     try:
@@ -214,6 +211,38 @@ def verify_2fa_code():
     else:
         app.logger.info("User not found")
         return jsonify({"error": "User not found"}), 404
+    
+@app.route('/contact-us', methods=['POST'])
+def contact_us():
+    data = request.get_json()
+    user_email = data.get('email')
+    message_body = data.get('message')
+    phone = data.get('phone')
+
+    if not user_email or not message_body:
+        return jsonify({'error': 'Missing required information'}), 400
+
+    email_body = f"""
+    You have a new message from {user_email}.
+
+    Phone: {phone}
+
+    Message:
+    {message_body}
+    """
+
+    msg = Message(
+        subject="New Contact Us Message",
+        recipients=['your-email@example.com'],  # Replace with your email
+        body=email_body
+    )
+
+    try:
+        mail.send(msg)
+        return jsonify({'message': 'Message sent successfully'}), 200
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+        return jsonify({'error': 'Internal server error'}), 500
     
 @app.route("/all_users")
 def get_all_users():
