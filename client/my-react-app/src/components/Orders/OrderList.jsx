@@ -1,9 +1,8 @@
 import React from 'react';
-import OrderItem from './OrderItem'; // Adjust the import path as needed
-
+import OrderItem from './OrderItem'; 
 const OrderList = ({ orders }) => {
   return (
-    <div className="flex flex-col grow px-11 pt-11 pb-24 w-full text-3xl text-black bg-slate-600 rounded-[65px] max-md:px-5 max-md:mt-10 max-md:max-w-full">
+    <div className="flex flex-col grow px-11 pt-11 pb-24 w-full text-black bg-white rounded-[65px] max-md:px-5 max-md:mt-10 max-md:max-w-full">
       {orders.length > 0 ? (
         orders.map((order) => (
           <OrderItem

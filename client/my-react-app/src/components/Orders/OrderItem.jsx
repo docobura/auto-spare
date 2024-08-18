@@ -2,7 +2,7 @@ import React from 'react';
 
 const OrderItem = ({ orderDate, status, totalAmount }) => {
   return (
-    <article className="flex flex-col items-start p-10 mt-10 bg-zinc-300 rounded-[20px]">
+    <article className="flex flex-col items-start p-8 mt-8 bg-white text-black rounded-[20px] shadow-lg">
       <div className="mb-4">
         <span className="font-bold">Order Date:</span> {new Date(orderDate).toLocaleDateString()}
       </div>

@@ -35,7 +35,7 @@ const ProductItem = ({ id, name, price, image }) => {
         <h2 className="mt-2 text-xl font-bold text-black">{name}</h2>
         <p className="text-lg text-gray-700">${formattedPrice}</p>
       </Link>
-      <button onClick={handleAddToCart} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg">
+      <button onClick={handleAddToCart} className="px-6 py-3 text-lg text-white bg-orange-500 rounded-lg shadow-lg">
         Add to Cart
       </button>
     </div>

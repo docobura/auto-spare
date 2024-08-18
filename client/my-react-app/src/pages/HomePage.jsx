@@ -1,102 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import ProductItem from "../components/Products/ProductItem";
-import { useAuth } from "../components/Auth/AuthContext";
-
-const Header = () => {
-  const { userRole, logout } = useAuth();
-  const navigate = useNavigate();
-  const [isDropdownOpen, setDropdownOpen] = useState(false);
-
-  const handleDashboardClick = (e) => {
-    e.preventDefault();
-    if (userRole === "Admin") {
-      navigate("/admin-dashboard");
-    }
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
-
-  const toggleDropdown = () => {
-    setDropdownOpen(!isDropdownOpen);
-  };
-
-  return (
-    <header className="fixed top-4 left-0 right-0 z-50 py-2 px-4 w-[90%] mx-auto bg-white rounded-lg shadow-md">
-      <nav className="flex justify-between items-center">
-        <Link to="/" className="flex items-center gap-2 text-lg text-black">
-          <div className="flex shrink-0 w-10 h-10 bg-black rounded-full" />
-          <div className="text-lg">AutoSavy</div>
-        </Link>
-        <div className="flex items-center">
-          <Link to="/shop" className="px-4 text-black hover:text-gray-700">
-            Shop
-          </Link>
-          <Link to="/servicing" className="px-4 text-black hover:text-gray-700">
-            Servicing
-          </Link>
-          <Link to="/reviews" className="px-4 text-black hover:text-gray-700">
-            Reviews
-          </Link>
-          <Link to="/cart" className="px-4 text-black hover:text-gray-700">
-            Cart
-          </Link>
-          {userRole === "Admin" ? (
-            <a
-              href="#"
-              onClick={handleDashboardClick}
-              className="px-1 text-black hover:text-gray-700"
-            >
-              Dashboard
-            </a>
-          ) : (
-            <div className="relative px-0">
-              <button
-                onClick={toggleDropdown}
-                className="text-black hover:text-gray-700 bg-transparent border-none cursor-pointer"
-              >
-                myAutoSavy
-              </button>
-              {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-20">
-                  <Link
-                    to="/my-orders"
-                    className="block px-4 py-2 text-sm text-black hover:bg-gray-200"
-                  >
-                    My Orders
-                  </Link>
-                  <Link
-                    to="/my-reviews"
-                    className="block px-4 py-2 text-sm text-black hover:bg-gray-200"
-                  >
-                    My Reviews
-                  </Link>
-                </div>
-              )}
-            </div>
-          )}
-          <div className="px-3">
-            {userRole ? (
-              <button
-                onClick={handleLogout}
-                className="text-black hover:text-gray-700 bg-transparent border-none cursor-pointer"
-              >
-                Logout
-              </button>
-            ) : (
-              <Link to="/login" className="text-black hover:text-gray-700">
-                Login
-              </Link>
-            )}
-          </div>
-        </div>
-      </nav>
-    </header>
-  );
-};
+import Header from "../components/Header";
 
 const Hero = () => {
   return (
@@ -131,7 +36,7 @@ const UpdateCard = ({ title, date, description, buttonText, buttonLink }) => {
       <time className="mt-1 text-lg">{date}</time>
       <p className="mt-2 text-base">{description}</p>
       <Link to={buttonLink}>
-        <button className="px-5 py-2 mt-2 text-center text-white bg-slate-600 rounded-full">
+        <button className="px-5 py-2 mt-2 text-lg text-white bg-orange-600 rounded-lg shadow-lg">
           {buttonText}
         </button>
       </Link>
@@ -218,7 +123,7 @@ const PartsExplorer = () => {
           )}
         </div>
         <Link to="/shop">
-          <button className="px-6 py-3 text-lg text-white bg-slate-600 rounded-md">
+          <button className="px-6 py-3 text-lg text-white bg-orange-600 rounded-lg shadow-lg">
             View More
           </button>
         </Link>
@@ -238,12 +143,12 @@ const OrangeSection = () => (
       </h2>
       <div className="mt-6 flex gap-4 justify-center">
         <Link to="/shop">
-          <button className="px-6 py-3 text-lg text-white bg-slate-600 rounded-md">
+          <button className="px-6 py-3 text-lg text-white bg-orange-600 rounded-lg shadow-lg">
             Get parts
           </button>
         </Link>
         <Link to="/servicing">
-          <button className="px-6 py-3 text-lg text-white bg-slate-600 rounded-md">
+          <button className="px-6 py-3 text-lg text-white bg-orange-600 rounded-lg shadow-lg">
             Book servicing
           </button>
         </Link>
@@ -272,7 +177,7 @@ const ReviewSection = () => {
             reviews.map((review, index) => (
               <article
                 key={index}
-                className="flex flex-col w-full max-w-md bg-zinc-300 rounded-lg p-6"
+                className="flex flex-col w-full max-w-md bg-gray-300 rounded-lg p-6"
               >
                 <h3 className="text-2xl font-semibold mb-2">{review.title}</h3>
                 <hr className="my-2 border-black" />
@@ -411,7 +316,7 @@ const ContactUs = () => {
                   />
                   <button
                       type="submit"
-                      className="w-full px-4 py-2 text-lg text-center text-white bg-slate-600 rounded-full"
+                      className="w-full px-4 py-2 px-6 py-3 text-lg text-white bg-orange-600 rounded-lg shadow-lg"
                   >
                       Submit
                   </button>

@@ -1,93 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import { useAuth } from '../components/Auth/AuthContext';
+import Header from '../components/Header';
 
-const Header = () => {
-  const { userRole, logout } = useAuth();
-  const navigate = useNavigate();
-  const [isDropdownOpen, setDropdownOpen] = useState(false);
-
-  const handleDashboardClick = (e) => {
-    e.preventDefault();
-    if (userRole === 'Admin') {
-      navigate('/admin-dashboard');
-    }
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
-  const toggleDropdown = () => {
-    setDropdownOpen(!isDropdownOpen);
-  };
-
-  return (
-    <header className="fixed top-4 left-0 right-0 z-50 py-2 px-4 w-[90%] mx-auto bg-white rounded-lg shadow-md"> 
-      <nav className="flex justify-between items-center">
-        <Link to="/" className="flex items-center gap-2 text-lg text-black">
-          <div className="flex shrink-0 w-10 h-10 bg-black rounded-full" />
-          <div className="text-lg">AutoSavy</div>
-        </Link>
-        <div className="flex items-center">
-          <div className="px-4">
-            <Link to="/shop" className="text-black hover:text-gray-700">Shop</Link>
-          </div>
-          
-          <div className="px-4">
-            <Link to="/servicing" className="text-black hover:text-gray-700">Servicing</Link>
-          </div>
-          <div className="px-4">
-            <Link to="/reviews" className="text-black hover:text-gray-700">Reviews</Link>
-          </div>
-          <div className="px-4">
-            <Link to="/cart" className="text-black hover:text-gray-700">Cart</Link>
-          </div>
-          {userRole === 'Admin' ? (
-            <div className="px-1">
-              <a href="#" onClick={handleDashboardClick} className="text-black hover:text-gray-700">Dashboard</a>
-            </div>
-          ) : (
-            <div className="relative px-0">
-              <button 
-                onClick={toggleDropdown} 
-                className="text-black hover:text-gray-700 bg-transparent border-none cursor-pointer">
-                myAutoSavy
-              </button>
-              {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-20">
-                  <Link 
-                    to="/my-orders" 
-                    className="block px-4 py-2 text-sm text-black hover:bg-gray-200">
-                    My Orders
-                  </Link>
-                  <Link 
-                    to="/my-reviews" 
-                    className="block px-4 py-2 text-sm text-black hover:bg-gray-200">
-                    My Reviews
-                  </Link>
-                </div>
-              )}
-            </div>
-          )}
-          <div className="px-3">
-            {userRole ? (
-              <button 
-                onClick={handleLogout} 
-                className="text-black hover:text-gray-700 bg-transparent border-none cursor-pointer">
-                Logout
-              </button>
-            ) : (
-              <Link to="/login" className="text-black hover:text-gray-700">Login</Link>
-            )}
-          </div>
-        </div>
-      </nav>
-    </header>
-  );
-};
 
 // SearchBar Component
 const SearchBar = ({ searchTerm, setSearchTerm }) => {
@@ -96,7 +11,7 @@ const SearchBar = ({ searchTerm, setSearchTerm }) => {
   };
 
   return (
-    <form onSubmit={handleSearch} className="flex items-center gap-2 px-3 py-1 bg-white rounded-full shadow-md">
+    <form onSubmit={handleSearch} className="flex items-center gap-2 px-3 py-1 bg-white rounded-lg shadow-md">
       <label htmlFor="search" className="sr-only">Search</label>
       <input
         type="text"
@@ -106,7 +21,7 @@ const SearchBar = ({ searchTerm, setSearchTerm }) => {
         onChange={(e) => setSearchTerm(e.target.value)}
         className="flex-grow px-2 py-1 text-sm text-gray-800 bg-transparent border-none outline-none"
       />
-      <button type="submit" aria-label="Search" className="flex-shrink-0">
+      <button type="submit" aria-label="Search" className="flex-shrink-0  hover:bg-orange-700">
         <MagnifyingGlassIcon className="w-5 h-5 text-white" />
       </button>
     </form>
@@ -187,99 +102,11 @@ const ProductCard = ({ id, name, price, description, image }) => {
       <p className="mt-1 text-xl text-gray-700">Ksh. {price.toLocaleString()}</p>
       <p className="mt-2 text-sm text-gray-600">{description}</p>
       <Link to={`/parts/${id}`}>
-        <button className="mt-4 px-4 py-2 text-lg text-center text-white bg-slate-600 rounded-lg w-full">
+        <button className="mt-4 px-4 py-2 text-lg text-center w-full  text-white bg-orange-600 rounded-lg shadow-lg">
           Purchase
         </button>
       </Link>
     </article>
-  );
-};
-
-// AddPartForm Component
-const AddPartForm = ({ onClose, onAddPart }) => {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
-  const [stock, setStock] = useState('');
-  const [image, setImage] = useState(null);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    const formData = new FormData();
-    formData.append('name', name);
-    formData.append('description', description);
-    formData.append('price', price);
-    formData.append('stock', stock);
-    formData.append('image', image);
-
-    fetch('https://auto-spare.onrender.com/parts', {
-      method: 'POST',
-      body: formData,
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        onAddPart(data);
-        onClose();
-      })
-      .catch((error) => {
-        console.error('Error adding part:', error);
-      });
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-[90%] max-w-md">
-        <h2 className="text-xl font-semibold text-black mb-4">Add New Part</h2>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <input
-            type="text"
-            placeholder="Part Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg"
-            required
-          />
-          <textarea
-            placeholder="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg"
-            required
-          />
-          <input
-            type="number"
-            placeholder="Price"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg"
-            required
-          />
-          <input
-            type="number"
-            placeholder="Stock Quantity"
-            value={stock}
-            onChange={(e) => setStock(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg"
-            required
-          />
-          <input
-            type="file"
-            onChange={(e) => setImage(e.target.files[0])}
-            className="px-3 py-2 border border-gray-300 rounded-lg"
-            required
-          />
-          <div className="flex justify-end gap-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-white bg-gray-500 rounded-lg">
-              Cancel
-            </button>
-            <button type="submit" className="px-4 py-2 text-white bg-blue-500 rounded-lg">
-              Add Part
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
   );
 };
 
@@ -326,8 +153,8 @@ const ShopPage = () => {
     <div className="w-screen h-screen bg-zinc-300 pt-3">
       <Header />
       <main className="flex flex-col px-8 py-4 bg-zinc-300 max-md:px-5 mt-16">
-        <header className="flex items-center justify-between py-4 px-6 bg-slate-600 rounded-full w-full max-md:pr-2">
-          <h1 className="text-xl text-white">Shop</h1>
+        <header className="flex items-center justify-between py-4 px-6 bg-black rounded-full w-full max-md:pr-2 ">
+          <h1 className="text-xl text-white ">Shop</h1>
           <div className="flex items-center gap-3">
             <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
             <FilterButton />

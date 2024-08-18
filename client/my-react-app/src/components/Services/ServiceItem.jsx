@@ -25,11 +25,11 @@ const ServiceItem = ({ id, label, imageUrl, description, price }) => {
         <p className="mt-1 text-gray-700 truncate">{description}</p> 
         <p className="mt-2 text-lg font-bold text-black">${price}</p> 
         <button 
-        onClick={handleBookService} 
-        className="mt-4 block text-center bg-blue-600 text-white py-2 rounded-md hover:bg-green-600"
-      >
-        Book Service
-      </button>
+          onClick={handleBookService} 
+          className="mt-4 block text-center bg-orange-500 text-black py-2 rounded-md hover:bg-orange-600"
+        >
+          Book Service
+        </button>
       </Link>
     </div>
   );

@@ -12,7 +12,7 @@ const ServiceList = ({ services }) => {
           imageUrl={service.image_url}
           description={service.additionalDescription}
           price={service.cost}
-          className="bg-white rounded-lg shadow-md p-4 text-center hover:shadow-lg transition-shadow duration-200"
+          className="bg-white text-black rounded-lg shadow-md p-4 text-center hover:shadow-lg transition-shadow duration-200"
         />
       ))}
     </div>
