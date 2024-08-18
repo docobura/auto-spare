@@ -114,7 +114,7 @@ const Hero = () => {
           Your one-stop shop for car parts and servicing needs!
         </p>
         <Link to="/shop">
-          <button className="px-6 py-3 text-lg text-white bg-orange-500 rounded-lg shadow-lg">
+          <button className="px-6 py-3 text-lg text-white bg-orange-600 rounded-lg shadow-lg">
             Explore Now
           </button>
         </Link>
@@ -218,7 +218,7 @@ const PartsExplorer = () => {
           )}
         </div>
         <Link to="/shop">
-          <button className="px-6 py-3 text-lg text-white bg-blue-500 rounded-lg">
+          <button className="px-6 py-3 text-lg text-white bg-slate-600 rounded-md">
             View More
           </button>
         </Link>
@@ -238,12 +238,12 @@ const OrangeSection = () => (
       </h2>
       <div className="mt-6 flex gap-4 justify-center">
         <Link to="/shop">
-          <button className="px-6 py-3 text-lg text-white bg-slate-600 rounded-full">
+          <button className="px-6 py-3 text-lg text-white bg-slate-600 rounded-md">
             Get parts
           </button>
         </Link>
         <Link to="/servicing">
-          <button className="px-6 py-3 text-lg text-white bg-slate-600 rounded-full">
+          <button className="px-6 py-3 text-lg text-white bg-slate-600 rounded-md">
             Book servicing
           </button>
         </Link>
