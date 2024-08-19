@@ -34,7 +34,6 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
 
-  // Dummy data for total sales and income
   const totalSales = 12345.67;
   const totalIncome = 89012.34;
 

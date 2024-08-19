@@ -91,7 +91,7 @@ const AddProductsForm = () => {
       ))}
       <button
         type="submit"
-        className="px-8 py-4 mt-6 mx-auto text-lg text-center text-white bg-slate-600 rounded-lg w-full max-w-xs max-md:px-4 max-md:py-2 max-md:mt-4"
+        className="px-8 py-4 mt-6 mx-auto text-lg text-center text-white bg-orange-500 rounded-lg w-full max-w-xs max-md:px-4 max-md:py-2 max-md:mt-4"
       >
         Add Product
       </button>
